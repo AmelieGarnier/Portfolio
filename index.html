@@ -688,39 +688,6 @@ footer{border-top:1px solid transparent;background:linear-gradient(var(--bg),var
           </div>
         </div>
       </div>
-      <div class="prj-c feat">
-        <div class="accent-bar"></div>
-        <div class="fl">
-          <span class="feat-badge">&#9729; AWS · CLOUD DR</span>
-          <div class="prj-ico">&#127785;</div>
-          <div class="prj-ttl">AWS Disaster Recovery &mdash; EKS Paris &rarr; Frankfurt</div>
-          <p class="prj-dsc">Architecture DR cross-r&eacute;gion compl&egrave;te sur AWS&nbsp;: bascule d&rsquo;un cluster EKS de Paris (eu-west-3) vers Frankfurt (eu-central-1) en &lt;&nbsp;35&nbsp;min. Infrastructure as Code Terraform, sauvegardes Velero&nbsp;+&nbsp;Kopia toutes les 30&nbsp;min, r&eacute;plication S3&nbsp;CRR chiffr&eacute;e KMS, authentification IRSA sans cl&eacute; en clair, monitoring Prometheus&nbsp;/&nbsp;Grafana&nbsp;/&nbsp;Discord.<br/>RPO&nbsp;30&nbsp;min &middot; RTO&nbsp;~25&ndash;35&nbsp;min &middot; 100&nbsp;% int&eacute;grit&eacute;</p>
-          <div class="tags">
-            <span class="tag tg">Amazon EKS</span>
-            <span class="tag tg">Kubernetes v1.30</span>
-            <span class="tag tg">Terraform v1.6.6</span>
-            <span class="tag tg">Velero v1.14.1</span>
-            <span class="tag tg">IRSA / OIDC</span>
-            <span class="tag tb">Rancher v2.9.3</span>
-            <span class="tag tb">Kopia &middot; S3 CRR &middot; KMS</span>
-            <span class="tag tb">GitHub Actions</span>
-            <span class="tag tm">RPO 30 min &middot; RTO &lt;35 min</span>
-          </div>
-          <button onclick="openPdf('https://drive.google.com/file/d/1ThHDoLzrXrQt29ke2EJlZaTH8kdFi-Hr/preview','AWS DR \u2014 EKS Paris \u2192 Frankfurt')" class="btn-pdf">&#128196; Voir le rapport</button>
-          <a href="https://github.com/AmelieGarnier/AWS-Disaster-Recovery/blob/main/Runbook.md" target="_blank" class="btn-pdf" style="display:inline-flex;align-items:center;gap:.5rem;text-decoration:none;margin-top:.4rem">&#128279; Runbook AWS</a>
-        </div>
-        <div class="fr">
-          <div class="fd">
-            <div class="fdr"><span class="fdk">Cluster primaire</span><span class="fdv">eks-paris &middot; eu-west-3</span></div>
-            <div class="fdr"><span class="fdk">Cluster DR</span><span class="fdv">eks-frankfurt &middot; eu-central-1</span></div>
-            <div class="fdr"><span class="fdk">Sauvegarde</span><span class="fdv">Velero + Kopia &middot; RPO 30 min</span></div>
-            <div class="fdr"><span class="fdk">Auth AWS</span><span class="fdv">IRSA &mdash; 0 cl&eacute; en clair</span></div>
-            <div class="fdr"><span class="fdk">RPO / RTO</span><span class="fdv">30 min &middot; ~25&ndash;35 min</span></div>
-            <div class="fdr"><span class="fdk">Donn&eacute;es restaur&eacute;es</span><span class="fdv">20 clients &middot; Int&eacute;grit&eacute; 100&nbsp;%</span></div>
-            <div class="fdr"><span class="fdk">Automatisation</span><span class="fdv">dr-restore.sh &middot; 95&nbsp;%</span></div>
-          </div>
-        </div>
-      </div>
 
       <div class="prj-c">
         <div class="accent-bar"></div>
