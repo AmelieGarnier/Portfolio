@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Amélie Garnier — GRC & Cybersécurité</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.4/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.4/dist/ScrollTrigger.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#030912;--bg2:#060e1c;--bg3:#0a1526;--surface:#0d1c30;
+  --cyan:#00d4ff;--cyan2:#0891b2;--amber:#f59e0b;--green:#00ff94;--red:#ff3b30;
+  --text:#b8d0e8;--muted:#4e6a85;
+  --border:rgba(0,212,255,.1);--border2:rgba(245,158,11,.12);
+  --mono:'JetBrains Mono',monospace;--display:'Syne',sans-serif;--body:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.7;overflow-x:hidden;cursor:none}
+
+/* CURSOR */
+#cur-dot,#cur-ring{position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+#cur-dot{width:4px;height:4px;background:var(--cyan);border-radius:50%;box-shadow:0 0 6px var(--cyan)}
+#cur-ring{width:18px;height:18px;border:1px solid rgba(0,212,255,.6);border-radius:50%;transition:width .15s,height .15s,border-color .15s}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--cyan2)}
+
+/* SCANLINE */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9997;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.022) 2px,rgba(0,0,0,.022) 4px)}
+
+/* NOISE */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.022;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='512' height='512' filter='url(%23n)'/%3E%3C/svg%3E");background-size:256px 256px}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 4vw;height:58px;background:rgba(3,9,18,.9);backdrop-filter:blur(24px);border-bottom:1px solid rgba(0,212,255,.08)}
+.nav-left{display:flex;align-items:center;gap:1.5rem}
+.nav-logo{font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--cyan);display:flex;align-items:center;gap:.4rem}
+.nav-logo .slash{color:var(--muted);font-weight:300}
+.nav-status{display:flex;align-items:center;gap:.4rem;font-family:var(--mono);font-size:.6rem;color:var(--muted);letter-spacing:.1em}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-family:var(--mono);font-size:.66rem;color:var(--muted);text-decoration:none;letter-spacing:.1em;text-transform:uppercase;transition:color .2s;position:relative;padding-bottom:2px}
+.nav-links a::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--cyan);transform:scaleX(0);transform-origin:left;transition:transform .2s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-links a:hover::after{transform:scaleX(1)}
+.nav-right{display:flex;align-items:center;gap:1.2rem}
+#navClock{font-family:var(--mono);font-size:.62rem;color:var(--muted);letter-spacing:.08em;min-width:5.5rem;text-align:right}
+.nav-cta{font-family:var(--mono);font-size:.66rem;padding:.36rem 1.1rem;border:1px solid rgba(0,212,255,.3);color:var(--cyan);text-decoration:none;letter-spacing:.06em;background:rgba(0,212,255,.04);clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,0 100%);transition:all .22s}
+.nav-cta:hover{background:rgba(0,212,255,.14);border-color:var(--cyan);color:#fff}
+
+/* HERO */
+#hero{position:relative;min-height:100vh;padding:100px 4vw 60px;overflow:hidden;display:flex;align-items:center}
+#bgCanvas{position:absolute;inset:0;z-index:0;width:100%;height:100%}
+.scan-line{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 5%,rgba(0,212,255,.35) 50%,transparent 95%);z-index:2;pointer-events:none;animation:scanAnim 7s linear infinite;top:0}
+@keyframes scanAnim{0%{top:0;opacity:1}85%{opacity:.25}100%{top:100%;opacity:0}}
+.hud-corner{position:absolute;width:55px;height:55px;z-index:2;opacity:.5}
+.hud-corner.tl{top:76px;left:4vw;border-top:1px solid var(--cyan);border-left:1px solid var(--cyan)}
+.hud-corner.tr{top:76px;right:4vw;border-top:1px solid var(--cyan);border-right:1px solid var(--cyan)}
+.hud-corner.bl{bottom:28px;left:4vw;border-bottom:1px solid var(--cyan);border-left:1px solid var(--cyan)}
+.hud-corner.br{bottom:28px;right:4vw;border-bottom:1px solid var(--cyan);border-right:1px solid var(--cyan)}
+.hud-label{position:absolute;font-family:var(--mono);font-size:.52rem;color:rgba(0,212,255,.35);letter-spacing:.12em;z-index:2}
+.hud-label.tl{top:133px;left:calc(4vw + 60px)}
+.hud-label.br{bottom:35px;right:calc(4vw + 60px)}
+
+.hero-inner{max-width:1280px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:4rem;position:relative;z-index:3}
+.hero-content{opacity:0}
+
+.hero-coords{font-family:var(--mono);font-size:.58rem;color:var(--muted);letter-spacing:.1em;margin-bottom:1.3rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.coord-sep{color:rgba(0,212,255,.25)}
+.coord-val{color:rgba(0,212,255,.55)}
+
+.hero-clearance{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--mono);font-size:.62rem;color:var(--amber);letter-spacing:.16em;text-transform:uppercase;padding:.3rem .95rem;border:1px solid rgba(245,158,11,.28);background:rgba(245,158,11,.05);margin-bottom:1.3rem;clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,0 100%)}
+.hero-clearance::before{content:'▶';font-size:.48rem}
+
+h1.hero-name{font-family:var(--display);font-size:clamp(3.2rem,5.5vw,5.4rem);font-weight:800;line-height:.98;letter-spacing:-.04em;color:#e8f4fd;margin-bottom:.65rem}
+h1.hero-name .accent{display:block;background:linear-gradient(105deg,var(--cyan) 20%,#7dd3fc 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 32px rgba(0,212,255,.3))}
+
+.hero-sub{font-size:1.02rem;color:var(--muted);margin-bottom:1.3rem}
+.hero-alert{display:flex;align-items:flex-start;gap:.75rem;font-family:var(--mono);font-size:.73rem;line-height:1.75;padding:.7rem 1.1rem;border:1px solid rgba(0,212,255,.13);border-left:2px solid var(--cyan);background:rgba(0,212,255,.04);margin-bottom:2rem;color:var(--text)}
+.hero-alert .ico{color:var(--cyan);flex-shrink:0;margin-top:.1rem}
+.hero-ctas{display:flex;gap:.9rem;flex-wrap:wrap}
+.btn-p{display:inline-flex;align-items:center;gap:.4rem;padding:.72rem 1.8rem;background:var(--cyan);color:#030912;font-family:var(--mono);font-size:.75rem;font-weight:700;letter-spacing:.06em;text-decoration:none;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,0 100%);transition:all .22s}
+.btn-p:hover{background:#7dd3fc;transform:translateY(-2px)}
+.btn-s{display:inline-flex;align-items:center;gap:.4rem;padding:.72rem 1.8rem;border:1px solid rgba(0,212,255,.28);color:var(--cyan);font-family:var(--mono);font-size:.75rem;letter-spacing:.06em;text-decoration:none;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,0 100%);transition:all .22s;background:transparent}
+.btn-s:hover{border-color:var(--cyan);background:rgba(0,212,255,.07);color:#fff}
+
+/* TERMINAL */
+.term-wrap{opacity:0}
+.terminal{background:rgba(6,14,28,.55);border:1px solid rgba(0,212,255,.18);border-radius:14px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.04);backdrop-filter:blur(22px)}
+.term-bar{display:flex;align-items:center;justify-content:space-between;padding:.62rem 1rem;background:rgba(0,0,0,.5);border-bottom:1px solid rgba(0,212,255,.09)}
+.term-bar-l{display:flex;align-items:center;gap:.4rem}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot-r{background:#ff5f56}.dot-y{background:#ffbd2e}.dot-g{background:#27c93f}
+.term-ttl{font-family:var(--mono);font-size:.63rem;color:var(--muted);margin-left:.5rem}
+.term-bar-r{font-family:var(--mono);font-size:.58rem;color:rgba(0,212,255,.38);letter-spacing:.06em}
+.term-body{padding:1rem 1.3rem;font-family:var(--mono);font-size:.76rem;line-height:1.9;min-height:290px}
+.tline{display:flex;gap:.6rem}
+.tp{color:var(--cyan);flex-shrink:0}.tc{color:#e8f4fd}
+.to{color:var(--muted);padding-left:1.2rem}.tob{color:var(--amber);padding-left:1.2rem}.tog{color:var(--green);padding-left:1.2rem}
+.cursor{display:inline-block;width:8px;height:1em;background:var(--cyan);vertical-align:text-bottom;animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* SECTIONS */
+section:not(#hero){position:relative;z-index:1;padding:100px 4vw}
+.si{max-width:1200px;margin:0 auto}
+.slbl{font-family:var(--mono);font-size:.6rem;color:var(--cyan);letter-spacing:.2em;text-transform:uppercase;margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem}
+.slbl::before{content:'[';color:var(--muted)}.slbl::after{content:']';color:var(--muted)}
+.stit{font-family:var(--display);font-size:clamp(1.9rem,3.2vw,2.9rem);font-weight:800;color:#e8f4fd;margin-bottom:.5rem;letter-spacing:-.03em}
+.ssub{color:var(--muted);font-size:.96rem;margin-bottom:3.5rem;max-width:560px;line-height:1.72}
+.divider{width:44px;height:2px;margin:1rem 0 2.5rem;background:linear-gradient(90deg,var(--cyan),var(--amber));position:relative}
+.divider::after{content:'';position:absolute;left:50px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:var(--amber);box-shadow:0 0 7px var(--amber)}
+
+/* ABOUT */
+#about{background:var(--bg2)}
+.about-g{display:grid;grid-template-columns:1.1fr 1fr;gap:4.5rem;align-items:start}
+.abt p{color:var(--text);margin-bottom:1rem;font-size:.99rem}
+.abt strong{color:var(--cyan);font-weight:500}
+.badges{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1.5rem}
+.bg{font-family:var(--mono);font-size:.61rem;padding:.26rem .78rem;letter-spacing:.06em;cursor:default;transition:all .2s;clip-path:polygon(0 0,calc(100% - 4px) 0,100% 4px,100% 100%,0 100%)}
+.bg-g{border:1px solid rgba(0,212,255,.22);color:var(--cyan);background:rgba(0,212,255,.06)}
+.bg-g:hover{background:rgba(0,212,255,.14);transform:translateY(-2px)}
+.bg-b{border:1px solid rgba(245,158,11,.22);color:var(--amber);background:rgba(245,158,11,.06)}
+.bg-b:hover{background:rgba(245,158,11,.14);transform:translateY(-2px)}
+
+.icards{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.icard{background:var(--surface);border:1px solid var(--border);padding:1.1rem;position:relative;transition:border-color .3s,box-shadow .3s}
+.icard::before{content:'';position:absolute;top:-1px;left:-1px;width:10px;height:10px;border-top:1px solid var(--cyan);border-left:1px solid var(--cyan)}
+.icard::after{content:'';position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-bottom:1px solid var(--amber);border-right:1px solid var(--amber)}
+.icard:hover{border-color:rgba(0,212,255,.28);box-shadow:0 0 20px rgba(0,212,255,.06)}
+.iclbl{font-family:var(--mono);font-size:.56rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.3rem}
+.icval{font-size:.85rem;color:#e8f4fd;font-weight:500}
+.icico{font-size:1.1rem;margin-bottom:.4rem}
+
+/* SKILLS */
+#skills{background:var(--bg)}
+.sk-g{display:grid;grid-template-columns:repeat(4,1fr);gap:1.4rem}
+.sk-c{background:var(--bg3);border:1px solid var(--border);padding:1.8rem;position:relative;will-change:transform;transform-style:preserve-3d;transition:border-color .3s,box-shadow .3s}
+.sk-c::before{content:'';position:absolute;top:-1px;left:-1px;width:14px;height:14px;border-top:1px solid var(--cyan);border-left:1px solid var(--cyan)}
+.sk-c::after{content:'';position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-bottom:1px solid var(--amber);border-right:1px solid var(--amber)}
+.sk-c:hover{border-color:rgba(0,212,255,.22);box-shadow:0 0 30px rgba(0,212,255,.06)}
+.sk-ttl{font-family:var(--mono);font-size:.64rem;color:var(--cyan);letter-spacing:.14em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:.55rem}
+.sk-ttl::before{content:'';display:inline-block;width:6px;height:6px;background:var(--cyan);box-shadow:0 0 8px var(--cyan);flex-shrink:0}
+.sk-i{margin-bottom:1.1rem}
+.sk-n{display:flex;justify-content:space-between;font-size:.83rem;color:var(--text);margin-bottom:.35rem}
+.sk-pct{font-family:var(--mono);font-size:.66rem;color:var(--cyan)}
+.bar-t{height:3px;background:rgba(0,212,255,.07);overflow:hidden}
+.bar-f{height:100%;width:0;transition:width 1.4s cubic-bezier(.16,1,.3,1);background:linear-gradient(90deg,var(--cyan2),var(--cyan));box-shadow:0 0 8px rgba(0,212,255,.35);position:relative}
+.bar-f::after{content:'';position:absolute;right:0;top:-1px;bottom:-1px;width:2px;background:rgba(255,255,255,.7)}
+
+/* PROJECTS */
+#projects{background:var(--bg2)}
+.prj-g{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.prj-c{background:var(--bg3);border:1px solid var(--border);padding:1.6rem;display:flex;flex-direction:column;gap:.7rem;position:relative;overflow:hidden;will-change:transform;transform-style:preserve-3d;transition:border-color .3s,box-shadow .3s}
+.prj-c::before{content:'';position:absolute;top:-1px;left:-1px;width:12px;height:12px;border-top:1px solid var(--cyan);border-left:1px solid var(--cyan)}
+.prj-c::after{content:'';position:absolute;bottom:-1px;right:-1px;width:12px;height:12px;border-bottom:1px solid var(--amber);border-right:1px solid var(--amber)}
+.prj-c:hover{border-color:rgba(0,212,255,.24);box-shadow:0 0 28px rgba(0,212,255,.07)}
+.accent-bar{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan) 50%,transparent);opacity:0;transition:opacity .3s}
+.prj-c:hover .accent-bar{opacity:1}
+.prj-c.feat{grid-column:1/-1;flex-direction:row;align-items:stretch;gap:2.5rem;border-color:rgba(0,212,255,.18);background:linear-gradient(135deg,#0a1c32,#060e1c)}
+.prj-c.feat .accent-bar{opacity:1}
+.prj-c.feat::after{border-color:var(--cyan)}
+.feat-badge{font-family:var(--mono);font-size:.58rem;color:#030912;background:var(--cyan);padding:.18rem .6rem;align-self:flex-start;letter-spacing:.08em;clip-path:polygon(0 0,calc(100% - 4px) 0,100% 4px,100% 100%,0 100%)}
+.prj-ico{font-size:2rem;filter:drop-shadow(0 0 10px rgba(0,212,255,.2))}
+.prj-ttl{font-family:var(--display);font-size:1.05rem;font-weight:700;color:#e8f4fd}
+.prj-dsc{font-size:.89rem;color:var(--muted);line-height:1.65}
+.tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.35rem}
+.tag{font-family:var(--mono);font-size:.59rem;padding:.18rem .6rem;letter-spacing:.04em}
+.tg{background:rgba(0,212,255,.08);color:var(--cyan);border:1px solid rgba(0,212,255,.18)}
+.tb{background:rgba(245,158,11,.08);color:var(--amber);border:1px solid rgba(245,158,11,.18)}
+.tm{background:rgba(78,106,133,.1);color:var(--muted);border:1px solid rgba(78,106,133,.18)}
+.fl{flex:1;display:flex;flex-direction:column;gap:.7rem}.fr{flex:1;display:flex;flex-direction:column;justify-content:center}
+.fd{display:flex;flex-direction:column;gap:.52rem;padding:1rem 1.1rem;background:rgba(0,0,0,.35);border:1px solid rgba(0,212,255,.08);position:relative}
+.fd::before{content:'';position:absolute;top:-1px;left:-1px;width:9px;height:9px;border-top:1px solid rgba(0,212,255,.38);border-left:1px solid rgba(0,212,255,.38)}
+.fdr{display:flex;gap:.6rem;font-family:var(--mono);font-size:.7rem}
+.fdk{color:var(--muted);min-width:105px}.fdv{color:var(--cyan)}
+.btn-pdf{display:inline-flex;align-items:center;gap:.4rem;margin-top:.35rem;font-family:var(--mono);font-size:.66rem;color:var(--cyan);border:1px solid rgba(0,212,255,.22);padding:.36rem .82rem;background:rgba(0,212,255,.04);transition:all .22s;cursor:pointer;clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,0 100%)}
+.btn-pdf:hover{color:#030912;background:var(--cyan);border-color:var(--cyan)}
+
+/* TIMELINE */
+#timeline{background:var(--bg)}
+.tl-w{position:relative;padding-left:2.5rem}
+.tl-w::before{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--cyan),var(--amber),transparent)}
+.tl-i{position:relative;margin-bottom:3rem}
+.tl-i::before{content:'';position:absolute;left:-2.65rem;top:.28rem;width:8px;height:8px;background:var(--bg);border:1px solid var(--cyan);box-shadow:0 0 10px rgba(0,212,255,.5);transform:rotate(45deg)}
+.tl-i.bd::before{border-color:var(--amber);box-shadow:0 0 10px rgba(245,158,11,.5)}
+.tl-i.gd::before{border-color:var(--muted);box-shadow:none}
+.tl-m{display:flex;align-items:center;gap:1rem;margin-bottom:.5rem;flex-wrap:wrap}
+.tl-d{font-family:var(--mono);font-size:.62rem;color:var(--muted)}
+.tl-s{font-family:var(--mono);font-size:.58rem;padding:.15rem .52rem;letter-spacing:.04em;display:inline-flex;align-items:center;gap:.3rem}
+.tl-s.act{background:rgba(0,255,148,.08);color:var(--green);border:1px solid rgba(0,255,148,.22)}
+.tl-s.act::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);animation:pulse 2s infinite}
+.tl-s.obt{background:rgba(245,158,11,.08);color:var(--amber);border:1px solid rgba(245,158,11,.22)}
+.tl-s.don{background:rgba(0,212,255,.08);color:var(--cyan2);border:1px solid rgba(0,212,255,.22)}
+.tl-s.enc{background:rgba(0,255,148,.08);color:var(--green);border:1px solid rgba(0,255,148,.28)}
+.tl-s.enc::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
+.tl-i.av::before{border-color:var(--cyan);box-shadow:0 0 14px rgba(0,212,255,.7);background:rgba(0,212,255,.15)}
+.tl-t{font-family:var(--display);font-size:1.05rem;font-weight:700;color:#e8f4fd;margin-bottom:.25rem}
+.tl-o{font-family:var(--mono);font-size:.7rem;color:var(--cyan);margin-bottom:.4rem}
+.tl-p{font-size:.89rem;color:var(--muted);line-height:1.65}
+
+/* CONTACT */
+#contact{background:var(--bg2);text-align:center}
+.ct-in{max-width:680px;margin:0 auto}
+.ct-hl{display:inline-flex;align-items:center;gap:.55rem;font-family:var(--mono);font-size:.7rem;color:var(--amber);background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);padding:.48rem 1.3rem;margin-bottom:2.5rem;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,0 100%)}
+.ct-hl::before{content:'◈'}
+.ct-lks{display:flex;justify-content:center;gap:.9rem;flex-wrap:wrap;margin-top:2rem}
+.ct-lk{display:flex;align-items:center;gap:.55rem;padding:.82rem 1.6rem;background:var(--bg3);border:1px solid var(--border);text-decoration:none;color:var(--text);font-family:var(--mono);font-size:.76rem;will-change:transform;transform-style:preserve-3d;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%);transition:all .22s;position:relative}
+.ct-lk::before{content:'';position:absolute;top:-1px;left:-1px;width:9px;height:9px;border-top:1px solid var(--cyan);border-left:1px solid var(--cyan)}
+.ct-lk:hover{border-color:rgba(0,212,255,.28);color:var(--cyan);background:rgba(0,212,255,.06);transform:translateY(-2px)}
+
+/* FOOTER */
+footer{padding:1.5rem 4vw;border-top:1px solid rgba(0,212,255,.07);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;position:relative;z-index:1;background:var(--bg)}
+.fl-l{font-family:var(--mono);font-size:.63rem;color:var(--muted)}
+.fl-l strong{color:var(--cyan)}
+.fl-r{font-family:var(--mono);font-size:.63rem;color:var(--muted)}
+
+/* PDF MODAL */
+.pdf-modal{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:20px}
+.pdf-modal.open{display:flex}
+.pdf-box{width:100%;max-width:960px;height:92vh;background:var(--bg2);border:1px solid rgba(0,212,255,.18);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 60px rgba(0,212,255,.08),0 32px 80px rgba(0,0,0,.8);position:relative}
+.pdf-box::before{content:'';position:absolute;top:-1px;left:-1px;width:18px;height:18px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
+.pdf-box::after{content:'';position:absolute;bottom:-1px;right:-1px;width:18px;height:18px;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan)}
+.pdf-bar{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1.1rem;border-bottom:1px solid rgba(0,212,255,.09);background:rgba(0,0,0,.55);flex-shrink:0}
+.pdf-dots{display:flex;align-items:center;gap:.4rem}
+.pdf-title{font-family:var(--mono);font-size:.66rem;color:var(--muted);margin-left:.5rem}
+.pdf-acts{display:flex;align-items:center;gap:1rem}
+.pdf-dl{font-family:var(--mono);font-size:.61rem;color:var(--muted);text-decoration:none;padding:.26rem .68rem;border:1px solid var(--border);transition:all .2s}
+.pdf-dl:hover{color:var(--cyan);border-color:rgba(0,212,255,.3)}
+.pdf-x{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;transition:color .2s}
+.pdf-x:hover{color:#e8f4fd}
+.pdf-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .hero-inner{grid-template-columns:1fr}.term-wrap{display:none}
+  .about-g{grid-template-columns:1fr;gap:2rem}
+  .sk-g{grid-template-columns:1fr}
+  .prj-g{grid-template-columns:1fr}.prj-c.feat{flex-direction:column}
+  .nav-links{display:none}
+  .icards{grid-template-columns:1fr}
+  .hud-corner,.hud-label{display:none}
+}
+@media(max-width:600px){section:not(#hero){padding:60px 4vw}.hero-name{font-size:2.5rem}}
+
+/* ═══════════════════════════════════════════════════
+   ENHANCED ANIMATIONS
+═══════════════════════════════════════════════════ */
+
+/* Scroll progress bar */
+#scroll-prog{position:fixed;top:0;left:0;height:2px;width:0;z-index:10000;pointer-events:none;background:linear-gradient(90deg,var(--cyan),var(--amber),var(--cyan));background-size:200% 100%;box-shadow:0 0 10px rgba(0,212,255,.65),0 0 22px rgba(0,212,255,.25);animation:prog-shine 2s linear infinite}
+@keyframes prog-shine{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
+/* Hero name glitch */
+.hero-name .accent{position:relative;display:block}
+.hero-name .accent::before,.hero-name .accent::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;background:linear-gradient(105deg,var(--cyan) 20%,#7dd3fc 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;pointer-events:none;opacity:0}
+@keyframes g1{0%,85%,100%{opacity:0;transform:none}86%{opacity:.9;transform:translate(-5px,1px);clip-path:polygon(0 8%,100% 8%,100% 32%,0 32%)}88%{opacity:.75;transform:translate(3px,-1px)}90%{opacity:0}93%{opacity:.55;transform:translate(-2px,0);clip-path:polygon(0 58%,100% 58%,100% 70%,0 70%)}95%{opacity:0}}
+@keyframes g2{0%,88%,100%{opacity:0;transform:none}89%{opacity:.8;transform:translate(4px,-2px);clip-path:polygon(0 42%,100% 42%,100% 60%,0 60%)}91%{opacity:.65;transform:translate(-4px,2px)}93%{opacity:0}}
+.hero-name .accent::before{animation:g1 9s infinite 2s}
+.hero-name .accent::after{animation:g2 9s infinite 2.7s}
+
+/* Nav logo flicker */
+@keyframes flk{0%,90%,93%,97%,100%{opacity:1}91%{opacity:.45;text-shadow:0 0 10px var(--cyan)}94%{opacity:.85}98%{opacity:.5;text-shadow:0 0 8px var(--cyan)}}
+.nav-logo{animation:flk 13s infinite}
+
+/* HUD corners animate in */
+@keyframes hud-in{from{opacity:0;width:0;height:0}to{opacity:.5;width:55px;height:55px}}
+.hud-corner{animation:hud-in .55s cubic-bezier(.16,1,.3,1) forwards;opacity:0}
+.hud-corner.tl{animation-delay:.3s}.hud-corner.tr{animation-delay:.45s}
+.hud-corner.bl{animation-delay:.6s}.hud-corner.br{animation-delay:.75s}
+
+/* Featured project breathing glow */
+@keyframes featglow{0%,100%{box-shadow:0 0 28px rgba(0,212,255,.07)}50%{box-shadow:0 0 65px rgba(0,212,255,.2),0 0 110px rgba(0,212,255,.06)}}
+.prj-c.feat{animation:featglow 4.5s ease-in-out infinite}
+
+/* Feat badge float */
+@keyframes fbadge{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.feat-badge{animation:fbadge 2.8s ease-in-out infinite}
+
+/* Card corners expand on hover */
+.sk-c::before,.sk-c::after,.prj-c::before,.prj-c::after,.icard::before,.icard::after{transition:width .28s ease,height .28s ease}
+.sk-c:hover::before,.sk-c:hover::after{width:22px;height:22px}
+.prj-c:hover::before,.prj-c:hover::after{width:20px;height:20px}
+.icard:hover::before,.icard:hover::after{width:16px;height:16px}
+
+/* Skill bar tip glow after fill */
+@keyframes bglow{0%,100%{box-shadow:0 0 8px rgba(0,212,255,.35)}50%{box-shadow:0 0 22px rgba(0,212,255,.85),0 0 42px rgba(0,212,255,.28)}}
+.bar-f.lit{animation:bglow 2.4s ease-in-out infinite}
+
+/* Data stream columns (Matrix rain) */
+.ds-col{position:absolute;font-family:var(--mono);font-size:.6rem;color:rgba(0,212,255,.1);white-space:pre;pointer-events:none;z-index:1;animation:dsfall linear infinite;line-height:1.6;writing-mode:vertical-rl;user-select:none;top:0}
+@keyframes dsfall{0%{transform:translateY(-120%);opacity:0}7%{opacity:1}88%{opacity:.2}100%{transform:translateY(115vh);opacity:0}}
+
+/* Scroll hint */
+.scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:.22rem;font-family:var(--mono);font-size:.5rem;color:rgba(0,212,255,.28);letter-spacing:.16em;pointer-events:none;transition:opacity .5s}
+@keyframes sh-bounce{0%,100%{transform:translateX(-50%) translateY(0)}55%{transform:translateX(-50%) translateY(6px)}}
+.scroll-hint{animation:sh-bounce 2.4s ease-in-out infinite}
+
+/* Timeline active dot ring pulse */
+@keyframes ring-pulse{0%{box-shadow:0 0 0 0 rgba(0,212,255,.5),0 0 14px rgba(0,212,255,.7)}70%{box-shadow:0 0 0 10px rgba(0,212,255,0),0 0 14px rgba(0,212,255,.7)}100%{box-shadow:0 0 0 0 rgba(0,212,255,0),0 0 14px rgba(0,212,255,.7)}}
+.tl-i.av::before{animation:ring-pulse 2s infinite !important}
+
+/* Timeline line draw-in */
+.tl-w::before{transform-origin:top center;animation:tl-draw 1.8s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes tl-draw{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+
+/* Typing cursor for tl-typing */
+@keyframes caret{0%,100%{border-right-color:var(--cyan)}50%{border-right-color:transparent}}
+.tl-typing{border-right:2px solid var(--cyan);animation:caret .75s step-end infinite;padding-right:3px}
+
+/* Divider dot glow pulse */
+@keyframes dot-ping{0%,100%{box-shadow:0 0 7px var(--amber)}50%{box-shadow:0 0 18px var(--amber),0 0 32px rgba(245,158,11,.35)}}
+.divider::after{animation:dot-ping 2.2s ease-in-out infinite}
+
+/* Project icon hover float */
+@keyframes ico-float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.08)}}
+.prj-c:hover .prj-ico{animation:ico-float 1.8s ease-in-out infinite}
+
+/* Contact link radial glow */
+.ct-lk-glow{position:absolute;inset:0;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(0,212,255,.1) 0%,transparent 65%);opacity:0;transition:opacity .35s;pointer-events:none}
+.ct-lk:hover .ct-lk-glow{opacity:1}
+
+/* Buttons: position + overflow for shine */
+.btn-p,.btn-s,.nav-cta{position:relative;overflow:hidden}
+.btn-shine{position:absolute;top:-20%;left:-80%;width:45%;height:140%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);transform:skewX(-18deg);pointer-events:none}
+
+/* Magnetic button spring reset */
+.btn-p,.btn-s{transition:background .22s,color .22s}
+.nav-cta{transition:background .22s,border-color .22s,color .22s}
+
+/* ══════════════════════════════════════════════════════
+   VISUAL ENHANCEMENT PACK v3 — AMÉLIORATIONS GLOBALES
+══════════════════════════════════════════════════════ */
+
+/* 0. EXTRA VARIABLES */
+:root{--violet:#a78bfa;--violet2:#6d28d9;--glow-c:rgba(0,212,255,.15);--glow-a:rgba(245,158,11,.12);--glow-g:rgba(0,255,148,.12);--glow-v:rgba(167,139,250,.12)}
+
+/* 1. HERO — AURORA LAYERS */
+#hero::before{
+  content:'';position:absolute;
+  width:75vw;height:65vh;top:5%;left:12%;
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(0,212,255,.08) 0%,rgba(0,80,180,.04) 40%,transparent 70%);
+  pointer-events:none;z-index:1;
+  filter:blur(55px);
+  animation:h-aurora 14s ease-in-out infinite alternate;
+}
+#hero::after{
+  content:'';position:absolute;
+  width:45vw;height:50vh;bottom:8%;right:4%;
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(245,158,11,.06) 0%,transparent 68%);
+  pointer-events:none;z-index:1;
+  filter:blur(45px);
+  animation:h-aurora2 18s ease-in-out infinite alternate;
+}
+@keyframes h-aurora{from{transform:translate(0,0) scale(1);opacity:.9}to{transform:translate(5%,4%) scale(1.15);opacity:1}}
+@keyframes h-aurora2{from{transform:translate(0,0)}to{transform:translate(-3%,-4%)}}
+
+/* 2. SECTION AMBIENT GLOWS */
+#about::before{content:'';position:absolute;top:-80px;right:-80px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,255,.055) 0%,transparent 68%);pointer-events:none;z-index:0;filter:blur(30px)}
+#skills::before{content:'';position:absolute;bottom:-120px;left:-80px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(245,158,11,.045) 0%,transparent 68%);pointer-events:none;z-index:0;filter:blur(35px)}
+#projects::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 15%,rgba(0,212,255,.04) 0%,transparent 50%);pointer-events:none;z-index:0}
+#timeline::before{content:'';position:absolute;top:-60px;right:-100px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.045) 0%,transparent 68%);pointer-events:none;z-index:0;filter:blur(30px)}
+#contact::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(0,212,255,.07) 0%,transparent 60%);pointer-events:none;z-index:0}
+
+/* 3. GRID PATTERN ON SKILLS */
+#skills::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(0,212,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.022) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0}
+
+/* 4. SECTION BOTTOM SEPARATORS */
+#about::after,#skills::after,#projects::after,#timeline::after{bottom:0;left:5%;right:5%;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.1) 30%,rgba(245,158,11,.1) 70%,transparent)}
+#about::after,#projects::after,#timeline::after{content:'';position:absolute;pointer-events:none}
+
+/* 5. GRADIENT SECTION TITLES */
+.stit{
+  background:linear-gradient(110deg,#e8f4fd 55%,rgba(0,212,255,.75) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 30px rgba(0,212,255,.12));
+}
+
+/* 6. SECTION LABELS */
+.slbl{font-size:.65rem;letter-spacing:.24em;color:rgba(0,212,255,.8)}
+
+/* 7. THICKER + ROUNDED SKILL BARS */
+.bar-t{height:5px;background:rgba(0,212,255,.06);border-radius:4px}
+.bar-f{border-radius:4px}
+.bar-f::after{width:3px;border-radius:0 2px 2px 0}
+
+/* 8. COLOR-CODED SKILL CARDS */
+/* Card 2 – Systèmes & Infra (amber) */
+.sk-c:nth-child(2)::before{border-top-color:var(--amber);border-left-color:var(--amber)}
+.sk-c:nth-child(2)::after{border-bottom-color:var(--amber);border-right-color:var(--amber)}
+.sk-c:nth-child(2) .sk-ttl{color:var(--amber)}
+.sk-c:nth-child(2) .sk-ttl::before{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.sk-c:nth-child(2) .bar-f{background:linear-gradient(90deg,#b45309,var(--amber));box-shadow:0 0 8px rgba(245,158,11,.4)}
+.sk-c:nth-child(2) .bar-t{background:rgba(245,158,11,.07)}
+.sk-c:nth-child(2) .sk-pct{color:var(--amber)}
+.sk-c:nth-child(2):hover{border-color:rgba(245,158,11,.3);box-shadow:0 0 36px rgba(245,158,11,.09)}
+.sk-c:nth-child(2) .bar-f.lit{animation:bglow-a 2.4s ease-in-out infinite}
+
+/* Card 3 – Réseaux & ITSM (green) */
+.sk-c:nth-child(3)::before{border-top-color:var(--green);border-left-color:var(--green)}
+.sk-c:nth-child(3)::after{border-bottom-color:var(--green);border-right-color:var(--green)}
+.sk-c:nth-child(3) .sk-ttl{color:var(--green)}
+.sk-c:nth-child(3) .sk-ttl::before{background:var(--green);box-shadow:0 0 8px var(--green)}
+.sk-c:nth-child(3) .bar-f{background:linear-gradient(90deg,#059669,var(--green));box-shadow:0 0 8px rgba(0,255,148,.4)}
+.sk-c:nth-child(3) .bar-t{background:rgba(0,255,148,.07)}
+.sk-c:nth-child(3) .sk-pct{color:var(--green)}
+.sk-c:nth-child(3):hover{border-color:rgba(0,255,148,.3);box-shadow:0 0 36px rgba(0,255,148,.09)}
+.sk-c:nth-child(3) .bar-f.lit{animation:bglow-g 2.4s ease-in-out infinite}
+
+/* Card 4 – Cloud & DevOps (violet) */
+.sk-c:nth-child(4)::before{border-top-color:var(--violet);border-left-color:var(--violet)}
+.sk-c:nth-child(4)::after{border-bottom-color:var(--violet);border-right-color:var(--violet)}
+.sk-c:nth-child(4) .sk-ttl{color:var(--violet)}
+.sk-c:nth-child(4) .sk-ttl::before{background:var(--violet);box-shadow:0 0 8px var(--violet)}
+.sk-c:nth-child(4) .bar-f{background:linear-gradient(90deg,var(--violet2),var(--violet));box-shadow:0 0 8px rgba(167,139,250,.4)}
+.sk-c:nth-child(4) .bar-t{background:rgba(167,139,250,.07)}
+.sk-c:nth-child(4) .sk-pct{color:var(--violet)}
+.sk-c:nth-child(4):hover{border-color:rgba(167,139,250,.3);box-shadow:0 0 36px rgba(167,139,250,.09)}
+.sk-c:nth-child(4) .bar-f.lit{animation:bglow-v 2.4s ease-in-out infinite}
+
+@keyframes bglow-a{0%,100%{box-shadow:0 0 8px rgba(245,158,11,.4)}50%{box-shadow:0 0 24px rgba(245,158,11,.9),0 0 44px rgba(245,158,11,.3)}}
+@keyframes bglow-g{0%,100%{box-shadow:0 0 8px rgba(0,255,148,.4)}50%{box-shadow:0 0 24px rgba(0,255,148,.9),0 0 44px rgba(0,255,148,.3)}}
+@keyframes bglow-v{0%,100%{box-shadow:0 0 8px rgba(167,139,250,.4)}50%{box-shadow:0 0 24px rgba(167,139,250,.9),0 0 44px rgba(167,139,250,.3)}}
+
+/* 9. PROJECT CARD — RICHER HOVER */
+.prj-c:not(.feat):hover{
+  border-color:rgba(0,212,255,.45);
+  box-shadow:0 0 55px rgba(0,212,255,.15),0 20px 55px rgba(0,0,0,.45),inset 0 1px 0 rgba(0,212,255,.12);
+  transform:translateY(-4px);
+}
+
+/* Featured card refined */
+.prj-c.feat{background:linear-gradient(135deg,rgba(10,28,50,.92) 0%,rgba(6,14,28,.97) 55%,rgba(8,14,26,.9) 100%);border-top:1px solid rgba(0,212,255,.2)}
+.prj-c.feat:hover{box-shadow:0 0 90px rgba(0,212,255,.28),0 0 140px rgba(0,212,255,.07),0 0 0 1px rgba(0,212,255,.2)!important}
+
+/* Featured scan shimmer */
+.scan-shimmer{position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(0,212,255,.55) 50%,transparent 100%);pointer-events:none;z-index:4;box-shadow:0 0 10px rgba(0,212,255,.4);animation:feat-scan 5s linear infinite}
+@keyframes feat-scan{0%{top:-2px;opacity:0}4%{opacity:1}94%{opacity:.4}100%{top:calc(100% + 2px);opacity:0}}
+
+/* 10. TAG HOVER */
+.tag{transition:all .18s ease;cursor:default}
+.tg:hover{background:rgba(0,212,255,.22);color:#e8f4fd;transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,212,255,.18)}
+.tb:hover{background:rgba(245,158,11,.22);color:#e8f4fd;transform:translateY(-2px);box-shadow:0 4px 14px rgba(245,158,11,.18)}
+.tm:hover{background:rgba(78,106,133,.25);color:#e8f4fd;transform:translateY(-2px)}
+
+/* 11. ICARD ENHANCED */
+.icard:hover{
+  border-color:rgba(0,212,255,.38);
+  box-shadow:0 0 28px rgba(0,212,255,.12),inset 0 1px 0 rgba(0,212,255,.1);
+  background:rgba(13,28,48,.88);
+}
+.icard .icico{transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.icard:hover .icico{transform:scale(1.12) translateY(-1px)}
+
+/* 12. TERMINAL GLOW */
+.terminal{box-shadow:0 24px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.04),0 0 55px rgba(0,212,255,.09),0 0 100px rgba(0,212,255,.04)}
+
+/* 13. ENHANCED DIVIDER */
+.divider{width:60px;height:2px;background:linear-gradient(90deg,var(--cyan) 0%,var(--amber) 65%,transparent 100%)}
+.divider::after{left:65px}
+
+/* 14. BETTER SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--cyan),var(--amber));border-radius:2px}
+::-webkit-scrollbar-track{background:rgba(3,9,18,.8)}
+
+/* 15. NAV CTA GLOW */
+.nav-cta:hover{box-shadow:0 0 22px rgba(0,212,255,.3);color:#fff}
+
+/* 16. CONTACT LINKS ENHANCED */
+.ct-lk:hover{
+  border-color:rgba(0,212,255,.42);
+  color:var(--cyan);
+  background:rgba(0,212,255,.09);
+  transform:translateY(-4px);
+  box-shadow:0 10px 35px rgba(0,212,255,.15),0 0 0 1px rgba(0,212,255,.08);
+}
+
+/* 17. SCROLL PROGRESS BAR */
+#scroll-prog{height:2px;box-shadow:0 0 14px rgba(0,212,255,.85),0 0 30px rgba(0,212,255,.35)}
+
+/* 18. HUD CORNERS */
+.hud-corner{filter:drop-shadow(0 0 5px rgba(0,212,255,.4))}
+
+/* 19. ABOUT STRONG HIGHLIGHT */
+.abt strong{color:var(--cyan);font-weight:600;text-shadow:0 0 18px rgba(0,212,255,.18)}
+
+/* 20. TIMELINE ENHANCED */
+.tl-i::before{width:10px;height:10px;left:-2.7rem}
+.tl-w{padding-left:2.8rem}
+.tl-i{padding:.8rem 1.2rem;background:rgba(6,14,28,.4);border:1px solid rgba(0,212,255,.06);border-left:none;transition:background .3s,border-color .3s}
+.tl-i:hover{background:rgba(0,212,255,.03);border-color:rgba(0,212,255,.14)}
+.tl-t{font-size:1.08rem}
+
+/* 21. FEAT BADGE GLOW */
+.feat-badge{box-shadow:0 0 20px rgba(0,212,255,.25)}
+
+/* 22. HERO BUTTON GLOW */
+.btn-p{box-shadow:0 4px 20px rgba(0,212,255,.25)}
+.btn-p:hover{box-shadow:0 6px 30px rgba(0,212,255,.45);transform:translateY(-3px)}
+
+/* 23. PDF MODAL ENHANCEMENT */
+.pdf-box{box-shadow:0 0 80px rgba(0,212,255,.12),0 40px 100px rgba(0,0,0,.9)}
+
+/* 24. HERO ALERT ENHANCEMENT */
+.hero-alert{border-left:2px solid var(--cyan);box-shadow:inset 0 0 30px rgba(0,212,255,.03),0 0 1px rgba(0,212,255,.2)}
+
+/* 25. FOOTER GRADIENT SEPARATOR */
+footer{border-top:1px solid transparent;background:linear-gradient(var(--bg),var(--bg)) padding-box,linear-gradient(90deg,transparent,rgba(0,212,255,.12) 30%,rgba(245,158,11,.1) 70%,transparent) border-box}
+</style>
+</head>
+<body>
+
+<div id="scroll-prog"></div>
+<div id="cur-dot"></div>
+<div id="cur-ring"></div>
+
+<nav>
+  <div class="nav-left">
+    <div class="nav-logo"><span class="slash">//</span>amelie_garnier</div>
+    <div class="nav-status"><div class="status-dot"></div>ONLINE</div>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#about">à propos</a></li>
+    <li><a href="#skills">compétences</a></li>
+    <li><a href="#projects">projets</a></li>
+    <li><a href="#timeline">parcours</a></li>
+    <li><a href="#contact">contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <span id="navClock">00:00:00</span>
+    <a href="mailto:garnier.amelie@live.fr" class="nav-cta">Contacter</a>
+  </div>
+</nav>
+
+<section id="hero">
+  <canvas id="bgCanvas"></canvas>
+  <div class="scan-line"></div>
+  <div class="hud-corner tl"></div>
+  <div class="hud-corner tr"></div>
+  <div class="hud-corner bl"></div>
+  <div class="hud-corner br"></div>
+  <span class="hud-label tl">SYS::PORTFOLIO_v2.0</span>
+  <span class="hud-label br">GRC·CYBER·ARLES·FR</span>
+
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-coords">
+        <span class="coord-val">GRC</span><span class="coord-sep">/</span>
+        <span class="coord-val">CYBERSÉCURITÉ</span><span class="coord-sep">/</span>
+        <span class="coord-val">ARLES·13</span><span class="coord-sep">/</span>
+        <span class="coord-val">SEPT·2026</span>
+      </div>
+      <div class="hero-clearance">Contrat de professionnalisation</div>
+      <h1 class="hero-name">
+        Amélie<br/>
+        <span class="accent" data-text="Garnier">Garnier</span>
+      </h1>
+      <p class="hero-sub">Juriste en reconversion dans la cybersécurité</p>
+      <div class="hero-alert">
+        <span class="ico">▶</span>
+        Recherche contrat de professionnalisation GRC — Fin septembre 2026<br/>
+        Rythme 3 semaines entreprise / 1 semaine école
+      </div>
+      <div class="hero-ctas">
+        <a href="#projects" class="btn-p">Voir mes projets</a>
+        <a href="#contact" class="btn-s">Me contacter</a>
+      </div>
+    </div>
+    <div class="term-wrap">
+      <div class="terminal">
+        <div class="term-bar">
+          <div class="term-bar-l">
+            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+            <span class="term-ttl">amelie@kali:~/portfolio</span>
+          </div>
+          <span class="term-bar-r">SSH·SECURE</span>
+        </div>
+        <div class="term-body" id="termBody"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="si">
+    <p class="slbl">01 · à propos</p>
+    <h2 class="stit" id="scramble-title">Double compétence,<br/>un cap : la GRC</h2>
+    <div class="divider"></div>
+    <div class="about-g">
+      <div class="abt">
+        <p>Après plusieurs années dans le secteur juridique, j'ai opéré une reconversion vers la <strong>cybersécurité</strong>, avec un ancrage fort sur la <strong>Gouvernance, le Risque et la Conformité</strong>. Cette trajectoire atypique me permet de lire un risque SI autant sous l'angle technique que réglementaire.</p>
+        <p>Ma formation M1 à l'<strong>ORT Toulouse / 3iL Ingénieurs</strong> me donne les bases infrastructure (Linux, réseaux, SIEM) pour dialoguer avec les équipes techniques — tout en maintenant l'orientation conformité : <strong>RGPD, ISO 27001, NIST CSF</strong>.</p>
+        <p>Je cherche un <strong>contrat de professionnalisation GRC</strong> pour fin septembre 2026, au rythme 3 semaines entreprise / 1 semaine école.</p>
+        <div class="badges">
+          <span class="bg bg-g">RGPD</span><span class="bg bg-g">ISO 27001</span><span class="bg bg-g">NIST CSF</span>
+          <span class="bg bg-b">Wazuh SIEM</span><span class="bg bg-b">Linux Debian</span><span class="bg bg-b">Active Directory</span>
+        </div>
+      </div>
+      <div class="icards">
+        <div class="icard"><div class="icico">🎓</div><div class="iclbl">Formation</div><div class="icval">Master Expert Réseaux, Infrastructures &amp; Sécurité<br/><span style="font-size:.78rem"><span style="color:var(--amber)">M1 obtenu</span> · <span style="color:var(--green)">M2 à venir</span></span></div></div>
+        <div class="icard"><div class="icico">🏛️</div><div class="iclbl">École</div><div class="icval">ORT Toulouse · 3iL Ingénieurs</div></div>
+        <div class="icard"><div class="icico">📍</div><div class="iclbl">Localisation</div><div class="icval">Arles (13) — Sud de la France</div></div>
+        <div class="icard"><div class="icico">🔄</div><div class="iclbl">Rythme alternance</div><div class="icval">3 semaines entreprise<br/>1 semaine école</div></div>
+        <div class="icard"><div class="icico">🌐</div><div class="iclbl">TOEIC</div><div class="icval">710 pts — Niveau B2</div></div>
+        <div class="icard"><div class="icico">🎯</div><div class="iclbl">Objectif</div><div class="icval">Contrat pro GRC · Sept. 2026</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="skills">
+  <div class="si">
+    <p class="slbl">02 · compétences</p>
+    <h2 class="stit">Stack technique</h2>
+    <div class="divider"></div>
+    <p class="ssub">Des fondations réseaux solides au pilotage du risque SI — des compétences pensées pour la GRC.</p>
+    <div class="sk-g">
+      <div class="sk-c">
+        <div class="sk-ttl">Sécurité &amp; GRC</div>
+        <div class="sk-i"><div class="sk-n"><span>Wazuh SIEM/EDR</span><span class="sk-pct">82%</span></div><div class="bar-t"><div class="bar-f" data-w="82"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>Analyse de risques SI</span><span class="sk-pct">78%</span></div><div class="bar-t"><div class="bar-f" data-w="78"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>RGPD / Conformité</span><span class="sk-pct">85%</span></div><div class="bar-t"><div class="bar-f" data-w="85"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>NIST</span><span class="sk-pct">74%</span></div><div class="bar-t"><div class="bar-f" data-w="74"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>Wireshark / VirusTotal</span><span class="sk-pct">70%</span></div><div class="bar-t"><div class="bar-f" data-w="70"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>SOAR — TheHive / Cortex / Shuffle</span><span class="sk-pct">77%</span></div><div class="bar-t"><div class="bar-f" data-w="77"></div></div></div>
+      </div>
+      <div class="sk-c">
+        <div class="sk-ttl">Systèmes &amp; Infra</div>
+        <div class="sk-i"><div class="sk-n"><span>Linux Debian</span><span class="sk-pct">80%</span></div><div class="bar-t"><div class="bar-f" data-w="80"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>Stack LAMP</span><span class="sk-pct">72%</span></div><div class="bar-t"><div class="bar-f" data-w="72"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>VMware / VirtualBox</span><span class="sk-pct">75%</span></div><div class="bar-t"><div class="bar-f" data-w="75"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>Active Directory / IAM</span><span class="sk-pct">68%</span></div><div class="bar-t"><div class="bar-f" data-w="68"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>Bash / PowerShell</span><span class="sk-pct">65%</span></div><div class="bar-t"><div class="bar-f" data-w="65"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>Zabbix 7.0 — Supervision</span><span class="sk-pct">75%</span></div><div class="bar-t"><div class="bar-f" data-w="75"></div></div></div>
+      </div>
+      <div class="sk-c">
+        <div class="sk-ttl">Réseaux &amp; ITSM</div>
+        <div class="sk-i"><div class="sk-n"><span>GLPI (ITSM/ITAM)</span><span class="sk-pct">80%</span></div><div class="bar-t"><div class="bar-f" data-w="80"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>Nextcloud</span><span class="sk-pct">76%</span></div><div class="bar-t"><div class="bar-f" data-w="76"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>VLAN / VPN / Firewall</span><span class="sk-pct">72%</span></div><div class="bar-t"><div class="bar-f" data-w="72"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>DHCP / DNS / FTP</span><span class="sk-pct">70%</span></div><div class="bar-t"><div class="bar-f" data-w="70"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>Suite Office</span><span class="sk-pct">90%</span></div><div class="bar-t"><div class="bar-f" data-w="90"></div></div></div>
+      </div>
+      <div class="sk-c">
+        <div class="sk-ttl">Cloud &amp; DevOps</div>
+        <div class="sk-i"><div class="sk-n"><span>Amazon AWS (EKS · S3 · IAM · KMS)</span><span class="sk-pct">74%</span></div><div class="bar-t"><div class="bar-f" data-w="74"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>Kubernetes / Helm</span><span class="sk-pct">72%</span></div><div class="bar-t"><div class="bar-f" data-w="72"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>Terraform (IaC)</span><span class="sk-pct">70%</span></div><div class="bar-t"><div class="bar-f" data-w="70"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>Velero / Kopia / DR</span><span class="sk-pct">68%</span></div><div class="bar-t"><div class="bar-f" data-w="68"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>Docker / Rancher v2.9.3</span><span class="sk-pct">65%</span></div><div class="bar-t"><div class="bar-f" data-w="65"></div></div></div>
+        <div class="sk-i"><div class="sk-n"><span>GitHub Actions (CI/CD)</span><span class="sk-pct">62%</span></div><div class="bar-t"><div class="bar-f" data-w="62"></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="si">
+    <p class="slbl">03 · projets</p>
+    <h2 class="stit">Réalisations</h2>
+    <div class="divider"></div>
+    <p class="ssub">Des projets concrets en environnement virtualisé, orientés sécurité opérationnelle et conformité.</p>
+    <div class="prj-g">
+      <div class="prj-c feat">
+        <div class="accent-bar"></div>
+        <div class="fl">
+          <span class="feat-badge">★ FEATURED</span>
+          <div class="prj-ico">🛡️</div>
+          <div class="prj-ttl">Wazuh SIEM / EDR sur Debian</div>
+          <p class="prj-dsc">Déploiement complet d'une infrastructure de surveillance centralisée. Centralisation des logs multi-sources, détection d'intrusions en temps réel, agents sur plusieurs machines Linux &amp; Windows.</p>
+          <div class="tags"><span class="tag tg">SIEM</span><span class="tag tg">EDR</span><span class="tag tg">GRC</span><span class="tag tb">Debian 12</span><span class="tag tm">Détection intrusions</span></div>
+          <button onclick="openPdf('https://drive.google.com/file/d/1HPmBCzCME23pfI-i-Us2Gd8sgLCN9EAz/preview','TP Wazuh SIEM/EDR')" class="btn-pdf">📄 Voir le rapport</button>
+          <a href="https://github.com/AmelieGarnier/Wazuh-Suricata/blob/main/Runbooks/wazuh-runbook.md" target="_blank" class="btn-pdf" style="display:inline-flex;align-items:center;gap:.5rem;text-decoration:none;margin-top:.4rem">&#128279; Runbook Wazuh</a>
+        </div>
+        <div class="fr">
+          <div class="fd">
+            <div class="fdr"><span class="fdk">Environnement</span><span class="fdv">VMware · Debian 12</span></div>
+            <div class="fdr"><span class="fdk">Composants</span><span class="fdv">Wazuh Manager + Agents</span></div>
+            <div class="fdr"><span class="fdk">Machines</span><span class="fdv">Multi-machines Linux &amp; Win</span></div>
+            <div class="fdr"><span class="fdk">Focus GRC</span><span class="fdv">Centralisation · Alertes · Audit</span></div>
+            <div class="fdr"><span class="fdk">Livrables</span><span class="fdv">TP complet documenté</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prj-c">
+        <div class="accent-bar"></div>
+        <div class="prj-ico">🔍</div>
+        <div class="prj-ttl">Suricata IDS/IPS</div>
+        <p class="prj-dsc">Déploiement de Suricata en mode IDS/IPS. Analyse de trafic réseau, écriture de règles de détection, inspection des alertes et corrélation avec les journaux système.</p>
+        <div class="tags"><span class="tag tg">IDS / IPS</span><span class="tag tg">Détection</span><span class="tag tb">Debian</span><span class="tag tm">Règles Suricata</span></div>
+        <button onclick="openPdf('https://drive.google.com/file/d/1RwhRDXqYxuPoCR2KLgp0hwKfXsk-L7gZ/preview','TP Suricata IDS/IPS')" class="btn-pdf">📄 Voir le rapport</button>
+        <a href="https://github.com/AmelieGarnier/Wazuh-Suricata/blob/main/Runbooks/suricata-runbook.md" target="_blank" class="btn-pdf" style="display:inline-flex;align-items:center;gap:.5rem;text-decoration:none;margin-top:.4rem">&#128279; Runbook Suricata</a>
+      </div>
+
+      <div class="prj-c">
+        <div class="accent-bar"></div>
+        <div class="prj-ico">⚡</div>
+        <div class="prj-ttl">SOAR — TheHive 4 · Cortex · Shuffle</div>
+        <p class="prj-dsc">Plateforme SOAR open source sur Docker, intégrée à Wazuh &amp; Suricata : trois scénarios automatisés (brute force SSH, scan de ports, exfiltration DNS) avec enrichissement AbuseIPDB/VirusTotal, blocage Active Response conditionnel et notifications Discord. MTTD 20s, MTTR &lt;1s, taux de blocage 100%.</p>
+        <div class="tags"><span class="tag tg">SOAR</span><span class="tag tg">Automatisation</span><span class="tag tb">Docker</span><span class="tag tb">MITRE ATT&amp;CK</span><span class="tag tm">Active Response</span></div>
+        <button onclick="openPdf('https://drive.google.com/file/d/18TmBshdlp8FScTzilm_vX-ezZPLOpNLm/preview','Implémentation SOAR — Lab cybersécurité')" class="btn-pdf">📄 Voir le rapport</button>
+        <a href="https://github.com/AmelieGarnier/SOAR/blob/main/runbook-soar.md" target="_blank" class="btn-pdf" style="display:inline-flex;align-items:center;gap:.5rem;text-decoration:none;margin-top:.4rem">&#128279; Runbook SOAR</a>
+      </div>
+
+      <div class="prj-c">
+        <div class="accent-bar"></div>
+        <div class="prj-ico">🖥️</div>
+        <div class="prj-ttl">Active Directory — IAM &amp; GPO</div>
+        <p class="prj-dsc">Mise en place d'un domaine Active Directory sur Windows Server. Gestion utilisateurs, groupes, OU, déploiement de GPO et configuration des droits d'accès.</p>
+        <div class="tags"><span class="tag tg">Active Directory</span><span class="tag tg">IAM</span><span class="tag tb">Windows Server</span><span class="tag tm">GPO</span></div>
+        <button onclick="openPdf('https://drive.google.com/file/d/1VDs4lS5txty9b0A4D3HG80JUUUaY7bKI/preview','TP Active Directory — IAM & GPO')" class="btn-pdf">📄 Voir le rapport</button>
+      </div>
+
+      <div class="prj-c">
+        <div class="accent-bar"></div>
+        <div class="prj-ico">📶</div>
+        <div class="prj-ttl">Zabbix 7.0 LTS — Supervision</div>
+        <p class="prj-dsc">Déploiement d'un serveur Zabbix 7.0 LTS sur VM Debian 13 dédiée. Supervision de 7 services critiques (Wazuh, SOAR, Active Directory) via agents et checks TCP. Triggers multi-sévérités, alertes Discord en temps réel (&lt;1 min).</p>
+        <div class="tags"><span class="tag tg">Supervision</span><span class="tag tg">Monitoring</span><span class="tag tb">Debian 13</span><span class="tag tb">MariaDB</span><span class="tag tm">Discord Webhooks</span></div>
+        <button onclick="openPdf('https://drive.google.com/file/d/1oOjuTd7FNHgYL0heBT_UPryqobjS2fbB/preview','TP Zabbix 7.0 LTS — Supervision')" class="btn-pdf">📄 Voir le rapport</button>
+        <a href="https://github.com/AmelieGarnier/Zabbix" target="_blank" class="btn-pdf" style="display:inline-flex;align-items:center;gap:.5rem;text-decoration:none;margin-top:.4rem">&#128279; Runbook Zabbix</a>
+      </div>
+
+      <div class="prj-c">
+        <div class="accent-bar"></div>
+        <div class="prj-ico">🔄</div>
+        <div class="prj-ttl">Disaster Recovery — Kubernetes</div>
+        <p class="prj-dsc">Déploiement d'une architecture DR sur Kubernetes avec Rancher, RKE2, MinIO et Velero. Mise en place de sauvegardes programmées, simulation de sinistre et restauration complète d'un cluster en environnement virtualisé.</p>
+        <div class="tags"><span class="tag tg">Kubernetes</span><span class="tag tg">DR / PRA</span><span class="tag tb">Rancher · RKE2</span><span class="tag tb">Velero · MinIO</span><span class="tag tm">VMware</span></div>
+        <button onclick="openPdf('https://drive.google.com/file/d/1irBSg0TbTwxmFRHzX3D0geyTg52CJKyw/preview','Projet DR Kubernetes')" class="btn-pdf">📄 Voir le rapport</button>
+      </div>
+
+      <div class="prj-c">
+        <div class="accent-bar"></div>
+        <div class="prj-ico">☁️</div>
+        <div class="prj-ttl">Nextcloud — Cloud privé souverain</div>
+        <p class="prj-dsc">Cloud privé sur VM Debian 12 avec stack LAMP et MariaDB. Souveraineté des données, tests fonctionnels de partage et synchronisation.</p>
+        <div class="tags"><span class="tag tg">Souveraineté</span><span class="tag tb">LAMP</span><span class="tag tb">MariaDB</span><span class="tag tm">Debian 12</span></div>
+        <button onclick="openPdf('https://drive.google.com/file/d/1bB0uUpDMYY6q0cEzahezBX6ScjmWqTnZ/preview','TP Nextcloud — Cloud privé')" class="btn-pdf">📄 Voir le rapport</button>
+      </div>
+
+      <div class="prj-c">
+        <div class="accent-bar"></div>
+        <div class="prj-ico">🗂️</div>
+        <div class="prj-ttl">GLPI 10.0.17 — ITSM/ITAM</div>
+        <p class="prj-dsc">Installation et configuration de GLPI sur Debian 12. Inventaire automatique Windows et Linux via FusionInventory. Workflows de tickets et gestion des actifs.</p>
+        <div class="tags"><span class="tag tg">ITSM</span><span class="tag tg">ITAM</span><span class="tag tb">Debian 12</span><span class="tag tm">FusionInventory</span></div>
+        <button onclick="openPdf('https://drive.google.com/file/d/1kzkizBTBzFloe5_3PRPLa82EfRQvy3L4/preview','TP GLPI 10.0.17')" class="btn-pdf">📄 Voir le rapport</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="timeline">
+  <div class="si">
+    <p class="slbl">04 · formation &amp; expérience</p>
+    <h2 class="stit">Parcours</h2>
+    <div class="divider"></div>
+    <div class="tl-w">
+      <div class="tl-i av">
+        <div class="tl-m"><span class="tl-d">2026 – 2027</span><span class="tl-s enc"> À venir</span></div>
+        <div class="tl-t">M2 Expert Réseaux et Infrastructures Sécurisées</div>
+        <div class="tl-o">ORT Toulouse / 3iL Ingénieurs</div>
+        <p class="tl-p">Pilotage stratégique de la sécurité des SI : gouvernance IT, élaboration de la PSSI, pilotage des projets en conduite du changement, coordination avec le RSSI et contribution au SOC en environnement complexe.</p>
+      </div>
+      <div class="tl-i">
+        <div class="tl-m"><span class="tl-d">Mai 2026</span><span class="tl-s obt">✓ Obtenu</span></div>
+        <div class="tl-t">M1 Expert Réseaux et Infrastructures Sécurisées</div>
+        <div class="tl-o">ORT Toulouse / 3iL Ingénieurs</div>
+        <p class="tl-p">Formation technique orientée réseaux, sécurité et infrastructures. Projets pratiques en environnement virtualisé : SIEM, ITSM, cloud privé, architecture réseau.</p>
+      </div>
+      <div class="tl-i bd">
+        <div class="tl-m"><span class="tl-d">Mai 2025</span><span class="tl-s obt">✓ Obtenu</span></div>
+        <div class="tl-t">Certificat Cybersécurité Google</div>
+        <div class="tl-o" style="color:var(--amber)">Google / Coursera</div>
+        <p class="tl-p">Programme complet couvrant le NIST CSF, le RGPD, Wireshark, Chronicle SIEM et les fondamentaux de la réponse aux incidents.</p>
+      </div>
+      <div class="tl-i gd">
+        <div class="tl-m"><span class="tl-d">Juil. – Sept. 2024</span><span class="tl-s don">Terminé</span></div>
+        <div class="tl-t">Assistante juridique aux assurances — NGE</div>
+        <div class="tl-o" style="color:var(--muted)">NGE — Groupe BTP</div>
+        <p class="tl-p">Traitement de dossiers sinistres, plateforme PHAROS, coordination équipes terrain et service juridique. Gestion de données sensibles en environnement réglementé.</p>
+      </div>
+      <div class="tl-i gd">
+        <div class="tl-m"><span class="tl-d">2021 – 2023</span><span class="tl-s don">Terminé</span></div>
+        <div class="tl-t">Assistante Préparatrice de commandes — XPO Logistics</div>
+        <div class="tl-o" style="color:var(--muted)">XPO Logistics</div>
+        <p class="tl-p">Préparation de commandes et gestion des stocks (picking, scanning, contrôle qualité). Respect des procédures de sécurité et coordination transport.</p>
+      </div>
+      <div class="tl-i gd">
+        <div class="tl-m"><span class="tl-d">2016 – 2021</span><span class="tl-s don">Terminé</span></div>
+        <div class="tl-t">Chargée de gestion administrative — Alpes Administration Services</div>
+        <div class="tl-o" style="color:var(--muted)">Alpes Administration Services</div>
+        <p class="tl-p">Administration du personnel, gestion des contrats et archivage légal. Optimisation des procédures entre RH, juridique et comptabilité.</p>
+      </div>
+      <div class="tl-i gd">
+        <div class="tl-m"><span class="tl-d">2013 – 2016</span><span class="tl-s don">Terminé</span></div>
+        <div class="tl-t">Collaboratrice juridique — Alpes Juridique Conseil</div>
+        <div class="tl-o" style="color:var(--muted)">Alpes Juridique Conseil</div>
+        <p class="tl-p">Traitement des dossiers contentieux, rédaction d'actes juridiques. Assistance à la conformité réglementaire des clients.</p>
+      </div>
+      <div class="tl-i gd">
+        <div class="tl-m"><span class="tl-d">2012 – 2013</span><span class="tl-s obt">✓ Obtenu</span></div>
+        <div class="tl-t">Master en Droit Public</div>
+        <div class="tl-o" style="color:var(--muted)">Université Aix-en-Provence</div>
+        <p class="tl-p">Droit public, administratif et réglementaire. Socle juridique qui nourrit aujourd'hui ma lecture de la conformité SI et des obligations légales des organisations.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="si">
+    <div class="ct-in">
+      <p class="slbl" style="justify-content:center">05 · contact</p>
+      <h2 class="stit" style="text-align:center">Travaillons ensemble</h2>
+      <div class="divider" style="margin:1rem auto 2rem"></div>
+      <div class="ct-hl">Contrat de professionnalisation GRC — Fin septembre 2026 — 3 semaines / 1 semaine</div>
+      <p style="color:var(--muted);font-size:.97rem;line-height:1.75">Je suis à la recherche d'une entreprise partenaire pour mon contrat de professionnalisation GRC à partir de fin septembre 2026. Si vous cherchez un profil alliant sensibilité juridique, culture sécurité et appétence pour la conformité SI — discutons-en.</p>
+      <div class="ct-lks">
+        <a href="mailto:garnier.amelie@live.fr" class="ct-lk"><div class="ct-lk-glow"></div><span>✉️</span> garnier.amelie@live.fr</a>
+        <a href="https://www.linkedin.com/in/am%C3%A9lie-g-b982b5316/" target="_blank" rel="noopener" class="ct-lk"><div class="ct-lk-glow"></div><span>💼</span> LinkedIn</a>
+      </div>
+      <div style="margin-top:1.6rem;font-family:var(--mono);font-size:.76rem;color:var(--muted)">📍 Arles (13) — Sud de la France</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="fl-l"><strong>Amélie Garnier</strong> · Juriste en reconversion → Cybersécurité / GRC</div>
+  <div class="fl-r">Construit avec passion &amp; du café ☕</div>
+</footer>
+
+<div class="pdf-modal" id="pdfModal">
+  <div class="pdf-box">
+    <div class="pdf-bar">
+      <div class="pdf-dots">
+        <div class="dot dot-r" style="cursor:pointer" onclick="closePdf()"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <span class="pdf-title" id="pdfTitle"></span>
+      </div>
+      <div class="pdf-acts">
+        <a class="pdf-dl" id="pdfDl" href="#" target="_blank">↓ Télécharger</a>
+        <button class="pdf-x" onclick="closePdf()">✕</button>
+      </div>
+    </div>
+    <div class="pdf-wrap" id="pdfWrap"></div>
+  </div>
+</div>
+
+<script>
+/* CURSOR */
+const dot=document.getElementById('cur-dot'),ring=document.getElementById('cur-ring');
+let mx=0,my=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  dot.style.left=mx+'px';dot.style.top=my+'px';
+  ring.style.left=mx+'px';ring.style.top=my+'px';
+});
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ring.style.width='28px';ring.style.height='28px';ring.style.borderColor='rgba(0,212,255,.9)'});
+  el.addEventListener('mouseleave',()=>{ring.style.width='18px';ring.style.height='18px';ring.style.borderColor='rgba(0,212,255,.6)'});
+});
+
+/* CLOCK */
+function ck(){const n=new Date(),p=v=>String(v).padStart(2,'0');document.getElementById('navClock').textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds())}
+setInterval(ck,1000);ck();
+
+/* THREE.JS PARTICLE NETWORK */
+(function(){
+  const canvas=document.getElementById('bgCanvas');
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(innerWidth,innerHeight);
+  const scene=new THREE.Scene();
+  const cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,1000);
+  cam.position.z=35;
+  const N=90;
+  const pts=Array.from({length:N},()=>({
+    x:(Math.random()-.5)*72,y:(Math.random()-.5)*46,z:(Math.random()-.5)*26,
+    vx:(Math.random()-.5)*.022,vy:(Math.random()-.5)*.022,vz:(Math.random()-.5)*.01
+  }));
+  const pArr=new Float32Array(N*3),pGeo=new THREE.BufferGeometry();
+  pGeo.setAttribute('position',new THREE.BufferAttribute(pArr,3));
+  scene.add(new THREE.Points(pGeo,new THREE.PointsMaterial({color:0x00d4ff,size:.28,transparent:true,opacity:.75})));
+  const ML=280,lArr=new Float32Array(ML*6),lGeo=new THREE.BufferGeometry();
+  lGeo.setAttribute('position',new THREE.BufferAttribute(lArr,3));
+  scene.add(new THREE.LineSegments(lGeo,new THREE.LineBasicMaterial({color:0x00d4ff,transparent:true,opacity:.12})));
+  const lArr2=new Float32Array(ML*6),lGeo2=new THREE.BufferGeometry();
+  lGeo2.setAttribute('position',new THREE.BufferAttribute(lArr2,3));
+  scene.add(new THREE.LineSegments(lGeo2,new THREE.LineBasicMaterial({color:0xf59e0b,transparent:true,opacity:.06})));
+  let smx=0,smy=0;
+  addEventListener('mousemove',e=>{smx=(e.clientX/innerWidth-.5)*2;smy=-(e.clientY/innerHeight-.5)*2});
+  addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+  (function tick(){
+    requestAnimationFrame(tick);
+    pts.forEach((p,i)=>{
+      p.x+=p.vx;p.y+=p.vy;p.z+=p.vz;
+      if(Math.abs(p.x)>36)p.vx*=-1;if(Math.abs(p.y)>23)p.vy*=-1;if(Math.abs(p.z)>13)p.vz*=-1;
+      pArr[i*3]=p.x;pArr[i*3+1]=p.y;pArr[i*3+2]=p.z;
+    });
+    pGeo.attributes.position.needsUpdate=true;
+    let li=0,li2=0;
+    for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){
+      if(li+li2>=ML*2-4)break;
+      const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,dz=pts[i].z-pts[j].z;
+      if(dx*dx+dy*dy+dz*dz<121){
+        const amb=(i*j)%5===0;
+        const a=amb?lArr2:lArr;const k=amb?li2++:li++;
+        a[k*6]=pts[i].x;a[k*6+1]=pts[i].y;a[k*6+2]=pts[i].z;
+        a[k*6+3]=pts[j].x;a[k*6+4]=pts[j].y;a[k*6+5]=pts[j].z;
+      }
+    }
+    for(let i=li*6;i<ML*6;i++)lArr[i]=0;
+    for(let i=li2*6;i<ML*6;i++)lArr2[i]=0;
+    lGeo.attributes.position.needsUpdate=true;lGeo.setDrawRange(0,li*2);
+    lGeo2.attributes.position.needsUpdate=true;lGeo2.setDrawRange(0,li2*2);
+    scene.rotation.y+=(smx*.04-scene.rotation.y)*.025;
+    scene.rotation.x+=(smy*.025-scene.rotation.x)*.025;
+    renderer.render(scene,cam);
+  })();
+})();
+
+/* GSAP */
+gsap.registerPlugin(ScrollTrigger);
+gsap.fromTo('.hero-content',{opacity:0,y:55},{opacity:1,y:0,duration:.95,ease:'power3.out',delay:.35});
+gsap.fromTo('.term-wrap',{opacity:0,y:40},{opacity:1,y:0,duration:.95,ease:'power3.out',delay:.65});
+['.stit','.slbl','.ssub','.divider'].forEach(s=>document.querySelectorAll(s).forEach(el=>
+  gsap.fromTo(el,{opacity:0,y:24},{opacity:1,y:0,duration:.65,ease:'power2.out',scrollTrigger:{trigger:el,start:'top 88%'}})));
+document.querySelectorAll('.sk-c').forEach((el,i)=>
+  gsap.fromTo(el,{opacity:0,y:45,rotateX:8},{opacity:1,y:0,rotateX:0,duration:.65,delay:i*.09,ease:'back.out(1.5)',scrollTrigger:{trigger:el,start:'top 91%'}}));
+document.querySelectorAll('.prj-c').forEach((el,i)=>
+  gsap.fromTo(el,{opacity:0,y:38,scale:.97},{opacity:1,y:0,scale:1,duration:.6,delay:i*.07,ease:'power2.out',scrollTrigger:{trigger:el,start:'top 92%'}}));
+document.querySelectorAll('.icard').forEach((el,i)=>
+  gsap.fromTo(el,{opacity:0,x:i%2?18:-18},{opacity:1,x:0,duration:.6,delay:i*.07,ease:'power2.out',scrollTrigger:{trigger:el,start:'top 91%'}}));
+document.querySelectorAll('.tl-i').forEach((el,i)=>{
+  const isAv=el.classList.contains('av');
+  gsap.fromTo(el,{opacity:0,x:-28},{opacity:1,x:0,duration:.65,delay:isAv?.3:i*.1,ease:'power2.out',...(!isAv&&{scrollTrigger:{trigger:el,start:'top 89%'}})});
+});
+
+/* 3D TILT */
+function tilt(sel,deg){document.querySelectorAll(sel).forEach(c=>{
+  c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform=`perspective(900px) rotateY(${x*deg*2}deg) rotateX(${-y*deg*2}deg) translateZ(6px)`;c.style.transition='transform .05s';c.style.boxShadow=`${-x*10}px ${-y*10}px 28px rgba(0,212,255,.07)`});
+  c.addEventListener('mouseleave',()=>{c.style.transform='';c.style.transition='transform .5s ease';c.style.boxShadow=''});
+})}
+tilt('.sk-c',7);tilt('.prj-c:not(.feat)',7);tilt('.ct-lk',7);
+
+/* TERMINAL */
+const LINES=[
+  {t:'cmd',v:'whoami'},{t:'out',v:'Juriste → Cybersécurité / GRC'},
+  {t:'cmd',v:'cat background.txt'},
+  {t:'out',v:'→ M1 Expert Réseaux Infrastructures et Sécurité · ORT/3iL'},
+  {t:'out',v:'→ Certificat Cybersécurité Google (2025)'},
+  {t:'out',v:'→ Assistante Juridique aux Assurances · NGE (2024)'},
+  {t:'out',v:'→ Préparatrice de commandes · XPO Logistics (2021–2023)'},
+  {t:'out',v:'→ Chargée de gestion administrative · Alpes Administration (2016–2021)'},
+  {t:'out',v:'→ Collaboratrice juridique · Alpes Juridique Conseil (2013–2016)'},
+  {t:'out',v:'→ Master Droit Public · Aix-en-Provence'},
+  {t:'cmd',v:'ls projects/'},
+  {t:'blu',v:'wazuh-siem/   suricata-ids/   soar-stack/'},
+  {t:'blu',v:'active-directory/   zabbix-supervision/'},
+  {t:'blu',v:'aws-disaster-recovery/   nextcloud/'},
+  {t:'blu',v:'glpi-itsm/'},
+  {t:'cmd',v:'cat objectif.txt'},
+  {t:'grn',v:'★ Contrat pro GRC · Sept. 2026'},
+  {t:'grn',v:'★ Rythme 3 semaines / 1 semaine'},
+  {t:'cmd',v:''},
+];
+const TB=document.getElementById('termBody');let LI=0;
+function addL(){
+  if(LI>=LINES.length){const c=document.createElement('span');c.className='cursor';TB.appendChild(c);return}
+  const l=LINES[LI++],d=document.createElement('div');d.className='tline';
+  const P='amelie@kali:~$';
+  if(l.t==='cmd')d.innerHTML='<span class="tp">'+P+'</span><span class="tc"> '+l.v+'</span>';
+  else if(l.t==='out')d.innerHTML='<span class="to">'+l.v+'</span>';
+  else if(l.t==='blu')d.innerHTML='<span class="tob">'+l.v+'</span>';
+  else if(l.t==='grn')d.innerHTML='<span class="tog">'+l.v+'</span>';
+  TB.appendChild(d);TB.scrollTop=TB.scrollHeight;
+  setTimeout(addL,l.t==='cmd'?340:180);
+}
+setTimeout(addL,1200);
+
+/* SKILL BARS */
+const barObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.width=e.target.dataset.w+'%';barObs.unobserve(e.target)}})},{threshold:0});
+document.querySelectorAll('.bar-f').forEach(b=>barObs.observe(b));
+
+/* NAV HIGHLIGHT */
+document.querySelectorAll('section[id]').forEach(s=>new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)document.querySelectorAll('.nav-links a').forEach(a=>{a.style.color=a.getAttribute('href')==='#'+e.target.id?'var(--cyan)':''})})},{rootMargin:'-40% 0px -55% 0px'}).observe(s));
+
+/* PDF MODAL */
+function openPdf(previewUrl,title){
+  document.getElementById('pdfTitle').textContent=title;
+  const isOneDrive=previewUrl.includes('1drv.ms')||previewUrl.includes('onedrive.live');
+  if(isOneDrive){
+    document.getElementById('pdfDl').href=previewUrl;
+  } else {
+    const dlId=previewUrl.split('/d/')[1].split('/')[0];
+    document.getElementById('pdfDl').href='https://drive.google.com/uc?export=download&id='+dlId;
+  }
+  document.getElementById('pdfModal').classList.add('open');
+  document.body.style.overflow='hidden';
+  document.getElementById('pdfWrap').innerHTML='<iframe src="'+previewUrl+'" style="width:100%;height:100%;border:none;" allowfullscreen></iframe>';
+}
+function closePdf(){document.getElementById('pdfModal').classList.remove('open');document.getElementById('pdfWrap').innerHTML='';document.body.style.overflow=''}
+document.getElementById('pdfModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePdf()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePdf()});
+
+/* ═══════════════════════════════════════════════════
+   ENHANCED ANIMATIONS
+═══════════════════════════════════════════════════ */
+
+/* Scroll progress bar */
+const _prog=document.getElementById('scroll-prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;_prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'},{passive:true});
+
+/* Data stream columns – Matrix rain dans le hero */
+(()=>{
+  const H=document.getElementById('hero');
+  const C='01GRC01ISO27001SIEM10RISK01CYBER10RGPD'.split('');
+  for(let i=0;i<9;i++){
+    const d=document.createElement('div');
+    d.className='ds-col';
+    d.style.left=(4+i*11)+'%';
+    d.style.animationDuration=(7+Math.random()*11)+'s';
+    d.style.animationDelay=(Math.random()*9)+'s';
+    let s='';for(let j=0;j<36;j++)s+=C[Math.floor(Math.random()*C.length)]+'\n';
+    d.textContent=s;H.appendChild(d);
+  }
+})();
+
+/* Scroll hint – disparaît au scroll */
+(()=>{
+  const sh=document.createElement('div');
+  sh.className='scroll-hint';
+  sh.innerHTML='SCROLL<span style="font-size:.95rem;line-height:1">↓</span>';
+  document.getElementById('hero').appendChild(sh);
+  window.addEventListener('scroll',()=>{sh.style.opacity=window.scrollY>90?'0':'1'},{passive:true});
+})();
+
+/* Text scramble – uniquement sur "Double compétence, un cap : la GRC" */
+const SC='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%?!&';
+function scramble(el){
+  const parts=[];
+  el.childNodes.forEach(n=>{if(n.nodeType===3&&n.textContent.trim())parts.push({node:n,orig:n.textContent})});
+  if(!parts.length)return;
+  let f=0,tot=24;
+  const iv=setInterval(()=>{
+    parts.forEach(p=>{
+      p.node.textContent=p.orig.split('').map((c,i)=>{
+        if(c===' ')return c;
+        return f>tot*(i/p.orig.length)?c:SC[Math.floor(Math.random()*SC.length)];
+      }).join('');
+    });
+    if(++f>tot){parts.forEach(p=>p.node.textContent=p.orig);clearInterval(iv);}
+  },42);
+}
+const _scTarget=document.getElementById('scramble-title');
+if(_scTarget){
+  const scObs=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){scramble(e.target);scObs.unobserve(e.target);}
+  }),{threshold:.4});
+  scObs.observe(_scTarget);
+}
+
+/* Boutons magnétiques */
+function mag(sel,s){
+  document.querySelectorAll(sel).forEach(b=>{
+    b.addEventListener('mousemove',e=>{const r=b.getBoundingClientRect();b.style.transform=`translate(${(e.clientX-r.left-r.width/2)*s}px,${(e.clientY-r.top-r.height/2)*s}px)`;b.style.transition='transform .07s'});
+    b.addEventListener('mouseleave',()=>{b.style.transform='';b.style.transition='transform .5s cubic-bezier(.34,1.56,.64,1)'});
+  });
+}
+mag('.btn-p,.btn-s',.18);
+mag('.nav-cta',.1);
+
+/* Shine sweep sur les boutons */
+document.querySelectorAll('.btn-p,.btn-s,.nav-cta').forEach(btn=>{
+  const sh=document.createElement('span');sh.className='btn-shine';btn.appendChild(sh);
+  btn.addEventListener('mouseenter',()=>{sh.style.transition='left .55s ease';sh.style.left='160%'});
+  btn.addEventListener('mouseleave',()=>{sh.style.transition='none';sh.style.left='-80%'});
+});
+
+/* Glow pulsant sur les barres après remplissage */
+const litO=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){setTimeout(()=>e.target.classList.add('lit'),1650);litO.unobserve(e.target);}
+}),{threshold:0});
+document.querySelectorAll('.bar-f').forEach(b=>litO.observe(b));
+
+/* Parallaxe hero au scroll */
+let _ptick=false;
+window.addEventListener('scroll',()=>{
+  if(_ptick)return;
+  requestAnimationFrame(()=>{
+    const sy=window.scrollY;
+    if(sy<window.innerHeight){
+      const hc=document.querySelector('.hero-content');
+      const tw=document.querySelector('.term-wrap');
+      if(hc)hc.style.transform=`translateY(${sy*.1}px)`;
+      if(tw)tw.style.transform=`translateY(${sy*.065}px)`;
+    }
+    _ptick=false;
+  });
+  _ptick=true;
+},{passive:true});
+
+/* Timeline – effet typewriter sur tous les titres */
+(()=>{
+  const els=document.querySelectorAll('.tl-i .tl-t');
+  if(!els.length)return;
+  const obs=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){
+      const el=e.target;
+      const txt=el.textContent;
+      el.textContent='';el.classList.add('tl-typing');
+      let i=0;
+      const iv=setInterval(()=>{el.textContent=txt.slice(0,i++);if(i>txt.length){el.classList.remove('tl-typing');clearInterval(iv);}},34);
+      obs.unobserve(el);
+    }
+  }),{threshold:.4});
+  els.forEach(el=>obs.observe(el));
+})();
+
+/* Contact links – glow radial qui suit la souris */
+document.querySelectorAll('.ct-lk').forEach(el=>{
+  el.addEventListener('mousemove',e=>{const r=el.getBoundingClientRect();el.style.setProperty('--gx',(e.clientX-r.left)/r.width*100+'%');el.style.setProperty('--gy',(e.clientY-r.top)/r.height*100+'%')});
+});
+
+/* Scan shimmer on featured cards */
+document.querySelectorAll('.prj-c.feat').forEach(c=>{
+  const s=document.createElement('div');
+  s.className='scan-shimmer';
+  c.appendChild(s);
+  /* Stagger the animation offset per card */
+  s.style.animationDelay=Math.random()*5+'s';
+});
+
+</script>
+</body>
+</html>
