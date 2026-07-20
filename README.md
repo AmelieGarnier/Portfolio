@@ -8,4 +8,6 @@ Portfolio personnel.
 
 - HTML / CSS / JavaScript vanilla
 - Three.js — animations 3D
-- GSAP — animations et scroll
+- GSAP + ScrollTrigger — animations et scroll
+- Google Fonts — JetBrains Mono, Syne, DM Sans
+- GitHub Pages — hébergement
