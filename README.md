@@ -7,7 +7,7 @@ Portfolio personnel.
 ## Stack
 
 - HTML / CSS / JavaScript vanilla
-- Three.js — animations 3D
-- GSAP + ScrollTrigger — animations et scroll
-- Google Fonts — JetBrains Mono, Syne, DM Sans
+- GSAP + ScrollTrigger — animation de la section Parcours
+- webgl-fluid — effet interactif de la section Contact
+- Polices Archivo / Archivo Black auto-hébergées
 - GitHub Pages — hébergement
