@@ -189,6 +189,44 @@ a:hover{color:#3fc8f0}
 @keyframes pulseDot{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.55)}50%{box-shadow:0 0 0 7px rgba(74,222,128,0)}}
 @keyframes liquidShine{0%{background-position:0% 50%}100%{background-position:300% 50%}}
 @keyframes walkAcross{0%{left:-260px}100%{left:100%}}
+/* Frise horizontale — Parcours */
+#tlTrack{display:flex;gap:1.6rem;overflow-x:auto;overflow-y:hidden;padding:2.6rem .4rem 2.4rem;scroll-snap-type:x proximity;cursor:grab;scrollbar-width:none;-ms-overflow-style:none}
+#tlTrack::-webkit-scrollbar{display:none}
+#tlTrack.grabbing{cursor:grabbing;scroll-snap-type:none}
+.tl-card{flex:0 0 330px;scroll-snap-align:center;position:relative;padding-top:2.6rem;opacity:0;transform:translateY(42px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
+.tl-card.in{opacity:1;transform:none}
+.tl-card::before{content:'';position:absolute;top:20px;left:20px;right:-1.6rem;height:2px;background:linear-gradient(90deg,rgba(63,200,240,.5),rgba(139,111,240,.5));z-index:1}
+.tl-card:last-child::before{display:none}
+.tl-node{position:absolute;top:0;left:0;width:41px;height:41px;border-radius:50%;background:#0c0c0c;border:1.5px solid rgba(63,200,240,.6);display:flex;align-items:center;justify-content:center;font-family:'Archivo Black',sans-serif;font-size:.86rem;color:#3fc8f0;box-shadow:0 0 0 6px #0c0c0c,0 0 18px rgba(63,200,240,.22);z-index:2;transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease}
+.tl-card:hover .tl-node{transform:scale(1.12);border-color:#8b6ff0;box-shadow:0 0 0 6px #0c0c0c,0 0 26px rgba(139,111,240,.55)}
+.tl-body{background:#111214;border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:1.5rem 1.5rem 1.7rem;min-height:236px;height:100%;box-sizing:border-box;transition:border-color .35s ease,transform .35s ease,box-shadow .35s ease}
+.tl-card:hover .tl-body{border-color:rgba(63,200,240,.32);transform:translateY(-5px);box-shadow:0 22px 50px rgba(0,0,0,.5)}
+.tl-date{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.9rem}
+.tl-year{font-family:'Archivo Black',sans-serif;font-size:1.05rem;color:#fff}
+.tl-badge{font-size:.52rem;font-weight:700;letter-spacing:.16em;border-radius:999px;padding:.26rem .7rem}
+.tl-badge.next{color:#3fc8f0;border:1px solid rgba(63,200,240,.45)}
+.tl-badge.done{color:#4ade80;border:1px solid rgba(74,222,128,.5)}
+.tl-title{margin:0 0 .3rem;font-size:.95rem;font-weight:700;letter-spacing:.02em;color:#fff;line-height:1.35}
+.tl-org{font-size:.68rem;font-weight:600;letter-spacing:.1em;color:#8a8a8a;margin-bottom:.7rem}
+.tl-desc{margin:0;font-size:.82rem;line-height:1.65;color:#a9a9a7}
+#tlHint{display:inline-flex;align-items:center;gap:.5rem;margin:0 auto 0;font-size:.58rem;font-weight:700;letter-spacing:.24em;color:#8a8a8a;transition:opacity .4s ease}
+#tlHint .arrow{display:inline-block;animation:tlNudge 1.6s ease-in-out infinite}
+@keyframes tlNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
+@media(max-width:640px){.tl-card{flex-basis:80vw}}
+/* Points de navigation latéraux masqués sur mobile (chevauchaient le contenu) */
+@media(max-width:760px){#navRail{display:none!important}}
+/* Menu burger — mobile uniquement, le desktop garde la nav horizontale */
+#navBurger{display:none}
+@media(max-width:760px){
+  #navBurger{display:flex;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;padding:0;margin-left:auto;background:transparent;border:0;cursor:pointer;z-index:130}
+  #navBurger span{display:block;width:24px;height:2px;margin:0 auto;background:#fff;border-radius:2px;transition:transform .3s ease,opacity .3s ease}
+  #mainNav.open #navBurger span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  #mainNav.open #navBurger span:nth-child(2){opacity:0}
+  #mainNav.open #navBurger span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  #navLinks{position:fixed;inset:0;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2.4rem!important;background:rgba(8,8,10,.97);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);transform:translateX(100%);transition:transform .45s cubic-bezier(.16,1,.3,1);z-index:120}
+  #mainNav.open #navLinks{transform:translateX(0)}
+  #navLinks a{font-size:1.05rem!important;letter-spacing:.3em!important}
+}
 </style>
 </head>
 <body>
@@ -209,13 +247,14 @@ a:hover{color:#3fc8f0}
 </div>
 
 <nav id="mainNav" style="position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:22px 4vw;transition:background .4s ease, backdrop-filter .4s ease">
-  <div style="display:flex;gap:2.4rem;align-items:center">
+  <div id="navLinks" style="display:flex;gap:2.4rem;align-items:center">
     <a href="#apropos" style="font-size:.68rem;font-weight:600;letter-spacing:.22em;color:#fff">À PROPOS</a>
     <a href="#expertise" style="font-size:.68rem;font-weight:600;letter-spacing:.22em;color:#fff">EXPERTISE</a>
     <a href="#projets" style="font-size:.68rem;font-weight:600;letter-spacing:.22em;color:#fff">PROJETS</a>
     <a href="#parcours" style="font-size:.68rem;font-weight:600;letter-spacing:.22em;color:#fff">PARCOURS</a>
     <a href="#contact" style="font-size:.68rem;font-weight:600;letter-spacing:.22em;color:#fff">CONTACT</a>
   </div>
+  <button id="navBurger" aria-label="Ouvrir le menu" aria-expanded="false"><span></span><span></span><span></span></button>
 </nav>
 
 <div id="scrollProgress" style="position:fixed;top:0;left:0;height:3px;width:0;z-index:200;background:linear-gradient(90deg,#3fc8f0,#5aa0f0,#8b6ff0);box-shadow:0 0 10px rgba(63,200,240,.5);pointer-events:none"></div>
@@ -673,40 +712,81 @@ a:hover{color:#3fc8f0}
 </div>
 </section>
 
-<section id="parcours" style="background:#0C0C0C;padding:120px 6vw">
+<section id="parcours" style="background:#0C0C0C">
+  <div id="tlPin" style="position:relative">
+    <div id="tlStage" style="display:flex;flex-direction:column;justify-content:center;padding:110px 6vw;box-sizing:border-box">
   <h2 data-big-title="" style="margin:0 0 4rem;font-family:'Archivo Black',sans-serif;font-size:clamp(3.2rem,9vw,7.5rem);line-height:1;letter-spacing:-.01em;text-transform:uppercase;text-align:center;background:linear-gradient(180deg,#ffffff 8%,#a8a8a8 55%,#484848 100%);-webkit-background-clip:text;background-clip:text;color:transparent">Parcours</h2>
-  <div style="max-width:860px;margin:0 auto;display:flex;flex-direction:column">
-    <div data-prow="" style="display:grid;grid-template-columns:170px 1fr;gap:2rem;padding:1.9rem 0;border-top:1px solid rgba(255,255,255,.13)">
-      <div><div style="font-family:'Archivo Black',sans-serif;font-size:1.15rem;color:#fff">2026 – 2027</div><div style="margin-top:.5rem;display:inline-block;font-size:.56rem;font-weight:700;letter-spacing:.18em;color:#3fc8f0;border:1px solid rgba(63,200,240,.4);border-radius:999px;padding:.28rem .75rem">À VENIR</div></div>
-      <div><h3 style="margin:0 0 .3rem;font-size:1rem;font-weight:700;letter-spacing:.03em;color:#fff">M2 EXPERT RÉSEAUX, INFRASTRUCTURES ET SÉCURITÉ</h3><div style="font-size:.74rem;font-weight:600;letter-spacing:.12em;color:#8a8a8a;margin-bottom:.55rem">ORT TOULOUSE / 3IL INGÉNIEURS</div><p style="margin:0;font-size:.88rem;line-height:1.7;color:#a9a9a7">Pilotage stratégique de la sécurité des SI : gouvernance IT, PSSI, conduite du changement, coordination RSSI et contribution au SOC.</p></div>
+  <div style="max-width:1180px;margin:0 auto;text-align:center">
+    <div id="tlHint">GLISSER<span class="arrow">→</span></div>
+  </div>
+  <div style="max-width:1180px;margin:.4rem auto 0">
+    <div id="tlTrack">
+      <div class="tl-card"><span class="tl-node">01</span>
+        <div class="tl-body">
+          <div class="tl-date"><span class="tl-year">2026 – 2027</span><span class="tl-badge next">À VENIR</span></div>
+          <h3 class="tl-title">M2 Expert Réseaux, Infrastructures et Sécurité</h3>
+          <div class="tl-org">ORT TOULOUSE / 3IL INGÉNIEURS</div>
+          <p class="tl-desc">Pilotage stratégique de la sécurité des SI : gouvernance IT, PSSI, conduite du changement, coordination RSSI et contribution au SOC.</p>
+        </div>
+      </div>
+      <div class="tl-card"><span class="tl-node">02</span>
+        <div class="tl-body">
+          <div class="tl-date"><span class="tl-year">Mai 2026</span><span class="tl-badge done">✓ OBTENU</span></div>
+          <h3 class="tl-title">M1 Expert Réseaux, Infrastructures et Sécurité</h3>
+          <div class="tl-org">ORT TOULOUSE / 3IL INGÉNIEURS</div>
+          <p class="tl-desc">Formation technique orientée réseaux, sécurité et infrastructures. Projets pratiques en environnement virtualisé : SIEM, ITSM, cloud privé, architecture réseau.</p>
+        </div>
+      </div>
+      <div class="tl-card"><span class="tl-node">03</span>
+        <div class="tl-body">
+          <div class="tl-date"><span class="tl-year">Mai 2025</span><span class="tl-badge done">✓ OBTENU</span></div>
+          <h3 class="tl-title">Certificat Cybersécurité Google</h3>
+          <div class="tl-org">GOOGLE / COURSERA</div>
+          <p class="tl-desc">Programme complet couvrant le NIST CSF, le RGPD, Wireshark, Chronicle SIEM et les fondamentaux de la réponse aux incidents.</p>
+        </div>
+      </div>
+      <div class="tl-card"><span class="tl-node">04</span>
+        <div class="tl-body">
+          <div class="tl-date"><span class="tl-year">2024</span></div>
+          <h3 class="tl-title">Assistante Juridique aux Assurances</h3>
+          <div class="tl-org">NGE — GROUPE BTP · JUIL. – SEPT. 2024</div>
+          <p class="tl-desc">Traitement de dossiers sinistres, plateforme PHAROS, coordination équipes terrain / service juridique. Gestion de données sensibles en environnement réglementé.</p>
+        </div>
+      </div>
+      <div class="tl-card"><span class="tl-node">05</span>
+        <div class="tl-body">
+          <div class="tl-date"><span class="tl-year">2021 – 2023</span></div>
+          <h3 class="tl-title">Assistante Préparatrice de Commandes</h3>
+          <div class="tl-org">XPO LOGISTICS</div>
+          <p class="tl-desc">Préparation de commandes et gestion des stocks. Respect des procédures de sécurité et coordination transport.</p>
+        </div>
+      </div>
+      <div class="tl-card"><span class="tl-node">06</span>
+        <div class="tl-body">
+          <div class="tl-date"><span class="tl-year">2016 – 2021</span></div>
+          <h3 class="tl-title">Chargée de Gestion Administrative</h3>
+          <div class="tl-org">ALPES ADMINISTRATION SERVICES</div>
+          <p class="tl-desc">Administration du personnel, gestion des contrats et archivage légal. Optimisation des procédures entre RH, juridique et comptabilité.</p>
+        </div>
+      </div>
+      <div class="tl-card"><span class="tl-node">07</span>
+        <div class="tl-body">
+          <div class="tl-date"><span class="tl-year">2013 – 2016</span></div>
+          <h3 class="tl-title">Collaboratrice Juridique</h3>
+          <div class="tl-org">ALPES JURIDIQUE CONSEIL</div>
+          <p class="tl-desc">Traitement des dossiers contentieux, rédaction d'actes juridiques, assistance à la conformité réglementaire des clients.</p>
+        </div>
+      </div>
+      <div class="tl-card"><span class="tl-node">08</span>
+        <div class="tl-body">
+          <div class="tl-date"><span class="tl-year">2012 – 2013</span><span class="tl-badge done">✓ OBTENU</span></div>
+          <h3 class="tl-title">Master en Droit Public</h3>
+          <div class="tl-org">UNIVERSITÉ AIX-EN-PROVENCE</div>
+          <p class="tl-desc">Droit public, administratif et réglementaire — le socle juridique qui nourrit ma lecture de la conformité SI.</p>
+        </div>
+      </div>
     </div>
-    <div data-prow="" style="display:grid;grid-template-columns:170px 1fr;gap:2rem;padding:1.9rem 0;border-top:1px solid rgba(255,255,255,.13)">
-      <div><div style="font-family:'Archivo Black',sans-serif;font-size:1.15rem;color:#fff">Mai 2026</div><div style="margin-top:.5rem;display:inline-block;font-size:.56rem;font-weight:700;letter-spacing:.18em;color:#4ade80;border:1px solid rgba(74,222,128,.5);border-radius:999px;padding:.28rem .75rem">✓ OBTENU</div></div>
-      <div><h3 style="margin:0 0 .3rem;font-size:1rem;font-weight:700;letter-spacing:.03em;color:#fff">M1 EXPERT RÉSEAUX, INFRASTRUCTURES ET SÉCURITÉ</h3><div style="font-size:.74rem;font-weight:600;letter-spacing:.12em;color:#8a8a8a;margin-bottom:.55rem">ORT TOULOUSE / 3IL INGÉNIEURS</div><p style="margin:0;font-size:.88rem;line-height:1.7;color:#a9a9a7">Formation technique orientée réseaux, sécurité et infrastructures. Projets pratiques en environnement virtualisé : SIEM, ITSM, cloud privé, architecture réseau.</p></div>
-    </div>
-    <div data-prow="" style="display:grid;grid-template-columns:170px 1fr;gap:2rem;padding:1.9rem 0;border-top:1px solid rgba(255,255,255,.13)">
-      <div><div style="font-family:'Archivo Black',sans-serif;font-size:1.15rem;color:#fff">Mai 2025</div><div style="margin-top:.5rem;display:inline-block;font-size:.56rem;font-weight:700;letter-spacing:.18em;color:#4ade80;border:1px solid rgba(74,222,128,.5);border-radius:999px;padding:.28rem .75rem">✓ OBTENU</div></div>
-      <div><h3 style="margin:0 0 .3rem;font-size:1rem;font-weight:700;letter-spacing:.03em;color:#fff">CERTIFICAT CYBERSÉCURITÉ GOOGLE</h3><div style="font-size:.74rem;font-weight:600;letter-spacing:.12em;color:#8a8a8a;margin-bottom:.55rem">GOOGLE / COURSERA</div><p style="margin:0;font-size:.88rem;line-height:1.7;color:#a9a9a7">Programme complet couvrant le NIST CSF, le RGPD, Wireshark, Chronicle SIEM et les fondamentaux de la réponse aux incidents.</p></div>
-    </div>
-    <div data-prow="" style="display:grid;grid-template-columns:170px 1fr;gap:2rem;padding:1.9rem 0;border-top:1px solid rgba(255,255,255,.13)">
-      <div><div style="font-family:'Archivo Black',sans-serif;font-size:1.15rem;color:#fff">2024</div></div>
-      <div><h3 style="margin:0 0 .3rem;font-size:1rem;font-weight:700;letter-spacing:.03em;color:#fff">ASSISTANTE JURIDIQUE AUX ASSURANCES</h3><div style="font-size:.74rem;font-weight:600;letter-spacing:.12em;color:#8a8a8a;margin-bottom:.55rem">NGE — GROUPE BTP · JUIL. – SEPT. 2024</div><p style="margin:0;font-size:.88rem;line-height:1.7;color:#a9a9a7">Traitement de dossiers sinistres, plateforme PHAROS, coordination équipes terrain / service juridique. Gestion de données sensibles en environnement réglementé.</p></div>
-    </div>
-    <div data-prow="" style="display:grid;grid-template-columns:170px 1fr;gap:2rem;padding:1.9rem 0;border-top:1px solid rgba(255,255,255,.13)">
-      <div><div style="font-family:'Archivo Black',sans-serif;font-size:1.15rem;color:#fff">2021 – 2023</div></div>
-      <div><h3 style="margin:0 0 .3rem;font-size:1rem;font-weight:700;letter-spacing:.03em;color:#fff">ASSISTANTE PRÉPARATRICE DE COMMANDES</h3><div style="font-size:.74rem;font-weight:600;letter-spacing:.12em;color:#8a8a8a;margin-bottom:.55rem">XPO LOGISTICS</div><p style="margin:0;font-size:.88rem;line-height:1.7;color:#a9a9a7">Préparation de commandes et gestion des stocks. Respect des procédures de sécurité et coordination transport.</p></div>
-    </div>
-    <div data-prow="" style="display:grid;grid-template-columns:170px 1fr;gap:2rem;padding:1.9rem 0;border-top:1px solid rgba(255,255,255,.13)">
-      <div><div style="font-family:'Archivo Black',sans-serif;font-size:1.15rem;color:#fff">2016 – 2021</div></div>
-      <div><h3 style="margin:0 0 .3rem;font-size:1rem;font-weight:700;letter-spacing:.03em;color:#fff">CHARGÉE DE GESTION ADMINISTRATIVE</h3><div style="font-size:.74rem;font-weight:600;letter-spacing:.12em;color:#8a8a8a;margin-bottom:.55rem">ALPES ADMINISTRATION SERVICES</div><p style="margin:0;font-size:.88rem;line-height:1.7;color:#a9a9a7">Administration du personnel, gestion des contrats et archivage légal. Optimisation des procédures entre RH, juridique et comptabilité.</p></div>
-    </div>
-    <div data-prow="" style="display:grid;grid-template-columns:170px 1fr;gap:2rem;padding:1.9rem 0;border-top:1px solid rgba(255,255,255,.13)">
-      <div><div style="font-family:'Archivo Black',sans-serif;font-size:1.15rem;color:#fff">2013 – 2016</div></div>
-      <div><h3 style="margin:0 0 .3rem;font-size:1rem;font-weight:700;letter-spacing:.03em;color:#fff">COLLABORATRICE JURIDIQUE</h3><div style="font-size:.74rem;font-weight:600;letter-spacing:.12em;color:#8a8a8a;margin-bottom:.55rem">ALPES JURIDIQUE CONSEIL</div><p style="margin:0;font-size:.88rem;line-height:1.7;color:#a9a9a7">Traitement des dossiers contentieux, rédaction d'actes juridiques, assistance à la conformité réglementaire des clients.</p></div>
-    </div>
-    <div data-prow="" style="display:grid;grid-template-columns:170px 1fr;gap:2rem;padding:1.9rem 0;border-top:1px solid rgba(255,255,255,.13);border-bottom:1px solid rgba(255,255,255,.13)">
-      <div><div style="font-family:'Archivo Black',sans-serif;font-size:1.15rem;color:#fff">2012 – 2013</div><div style="margin-top:.5rem;display:inline-block;font-size:.56rem;font-weight:700;letter-spacing:.18em;color:#4ade80;border:1px solid rgba(74,222,128,.5);border-radius:999px;padding:.28rem .75rem">✓ OBTENU</div></div>
-      <div><h3 style="margin:0 0 .3rem;font-size:1rem;font-weight:700;letter-spacing:.03em;color:#fff">MASTER EN DROIT PUBLIC</h3><div style="font-size:.74rem;font-weight:600;letter-spacing:.12em;color:#8a8a8a;margin-bottom:.55rem">UNIVERSITÉ AIX-EN-PROVENCE</div><p style="margin:0;font-size:.88rem;line-height:1.7;color:#a9a9a7">Droit public, administratif et réglementaire — le socle juridique qui nourrit ma lecture de la conformité SI.</p></div>
+  </div>
     </div>
   </div>
 </section>
@@ -728,7 +808,7 @@ a:hover{color:#3fc8f0}
     <a data-reveal="" href="mailto:garnier.amelie@live.fr" data-flip="" style="display:block;position:relative;height:250px;perspective:1100px;text-decoration:none">
       <span data-flip-inner="" style="position:absolute;inset:0;transition:transform .7s cubic-bezier(.2,.85,.3,1);transform-style:preserve-3d;display:block">
         <span style="position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;background:#111;border:1px solid rgba(255,255,255,.13);border-radius:26px">
-          <span style="width:64px;height:64px;border:1px solid rgba(255,255,255,.28);border-radius:50%;display:flex;align-items:center;justify-content:center"><svg width="25" height="25" sc-camel-view-box="0 0 24 24" fill="none" stroke="#e8e8e6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"></rect><path d="M3 6.5l9 6.5 9-6.5"></path></svg></span>
+          <span style="width:64px;height:64px;border:1px solid rgba(255,255,255,.28);border-radius:50%;display:flex;align-items:center;justify-content:center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#e8e8e6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"></rect><path d="M3 6.5l9 6.5 9-6.5"></path></svg></span>
           <span style="font-size:.65rem;font-weight:600;letter-spacing:.28em;color:#9a9a98">EMAIL</span>
         </span>
         <span style="position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(180deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;background:linear-gradient(160deg,#182430,#101820);border:1px solid rgba(63,200,240,.45);border-radius:26px;padding:1.4rem">
@@ -754,7 +834,7 @@ a:hover{color:#3fc8f0}
     <a data-reveal="" href="https://github.com/AmelieGarnier" target="_blank" rel="noopener" data-flip="" style="display:block;position:relative;height:250px;perspective:1100px;text-decoration:none">
       <span data-flip-inner="" style="position:absolute;inset:0;transition:transform .7s cubic-bezier(.2,.85,.3,1);transform-style:preserve-3d;display:block">
         <span style="position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;background:#111;border:1px solid rgba(255,255,255,.13);border-radius:26px">
-          <span style="width:64px;height:64px;border:1px solid rgba(255,255,255,.28);border-radius:50%;display:flex;align-items:center;justify-content:center"><svg width="25" height="25" sc-camel-view-box="0 0 16 16" fill="#e8e8e6"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg></span>
+          <span style="width:64px;height:64px;border:1px solid rgba(255,255,255,.28);border-radius:50%;display:flex;align-items:center;justify-content:center"><svg width="30" height="30" viewBox="0 0 16 16" fill="#e8e8e6"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg></span>
           <span style="font-size:.65rem;font-weight:600;letter-spacing:.28em;color:#9a9a98">GITHUB</span>
         </span>
         <span style="position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(180deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;background:linear-gradient(160deg,#182430,#101820);border:1px solid rgba(63,200,240,.45);border-radius:26px;padding:1.4rem">
@@ -813,15 +893,31 @@ class Component {
       card.addEventListener('focus', enter);
       card.addEventListener('blur', leave);
     });
-    this.initParcoursGsap();
+    this.initTimeline();
+    this.initBurger();
 
     this.initWordReveal();
     this.initSectionTransitions();
     this.initScroll();
   }
+  initBurger() {
+    const nav = document.getElementById('mainNav');
+    const burger = document.getElementById('navBurger');
+    if (!nav || !burger) return;
+    const links = nav.querySelectorAll('#navLinks a');
+    const setOpen = (open) => {
+      nav.classList.toggle('open', open);
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      burger.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+      document.body.style.overflow = open ? 'hidden' : '';
+    };
+    burger.addEventListener('click', () => setOpen(!nav.classList.contains('open')));
+    links.forEach(a => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
+  }
   initSectionTransitions() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const targets = Array.from(document.querySelectorAll('#apropos, #expertise, #projets, #parcours, #contact'));
+    const targets = Array.from(document.querySelectorAll('#apropos, #expertise, #projets, #contact'));
     if (!targets.length) return;
     targets.forEach(sec => {
       if (getComputedStyle(sec).position === 'static') sec.style.position = 'relative';
@@ -999,36 +1095,122 @@ class Component {
       }, { threshold: 0.15 }).observe(hero);
     }
   }
-  initParcoursGsap() {
-    const section = document.getElementById('parcours');
-    if (!section || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    (async () => {
-      try {
-        const { gsap } = await import('https://cdn.jsdelivr.net/npm/gsap@3.12.5/+esm');
-        const { ScrollTrigger } = await import('https://cdn.jsdelivr.net/npm/gsap@3.12.5/ScrollTrigger/+esm');
-        gsap.registerPlugin(ScrollTrigger);
-        const title = section.querySelector('[data-big-title]');
-        if (title) gsap.fromTo(title, { yPercent: 55, opacity: .15 }, {
-          yPercent: 0, opacity: 1, ease: 'none',
-          scrollTrigger: { trigger: section, start: 'top 95%', end: 'top 25%', scrub: 1 }
+  initTimeline() {
+    const track = document.getElementById('tlTrack');
+    const hint = document.getElementById('tlHint');
+    if (!track) return;
+    const cards = Array.from(track.querySelectorAll('.tl-card'));
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let pinned = false; // passe à true quand le défilement épinglé GSAP prend le relais
+
+    let hinted = false;
+    const hideHint = () => { if (!hinted && hint) { hinted = true; hint.style.opacity = '0'; } };
+
+    // Révélation en cascade des cartes (défilement horizontal ET vertical)
+    if (reduced) {
+      cards.forEach(c => c.classList.add('in'));
+    } else {
+      const io = new IntersectionObserver((entries, obs) => {
+        entries.filter(e => e.isIntersecting).forEach(e => {
+          const idx = cards.indexOf(e.target);
+          setTimeout(() => e.target.classList.add('in'), Math.max(0, idx) % 4 * 90);
+          obs.unobserve(e.target);
         });
-        section.querySelectorAll('[data-prow]').forEach(row => {
-          const year = row.children[0], body = row.children[1];
-          // la ligne de séparation se "dessine" de gauche à droite
-          row.style.borderTopColor = 'transparent';
-          row.style.backgroundImage = 'linear-gradient(rgba(255,255,255,.32),rgba(255,255,255,.32))';
-          row.style.backgroundRepeat = 'no-repeat';
-          row.style.backgroundPosition = '0 0';
-          row.style.backgroundSize = '0% 1px';
-          const tl = gsap.timeline({ scrollTrigger: { trigger: row, start: 'top 86%', toggleActions: 'play none none reverse' } });
-          tl.to(row, { backgroundSize: '100% 1px', duration: 1.1, ease: 'power2.inOut' }, 0);
-          if (year) tl.fromTo(year, { x: -70, opacity: 0, filter: 'blur(6px)' }, { x: 0, opacity: 1, filter: 'blur(0px)', duration: .9, ease: 'power3.out' }, 0);
-          if (body) tl.fromTo(body, { y: 44, opacity: 0 }, { y: 0, opacity: 1, duration: .9, ease: 'power3.out' }, .12);
-          // légère parallaxe continue sur la colonne année
-          if (year) gsap.fromTo(year, { y: 16 }, { y: -16, ease: 'none', scrollTrigger: { trigger: row, start: 'top bottom', end: 'bottom top', scrub: 2 } });
-        });
-      } catch (_) {}
-    })();
+      }, { root: track, threshold: 0.25 });
+      cards.forEach(c => io.observe(c));
+    }
+
+    // --- Interactions de repli (molette au survol, glisser, tactile natif) ---
+    // Actives tant que le mode épinglé GSAP n'a pas pris le relais (ou s'il échoue).
+    if (!reduced) {
+      track.addEventListener('wheel', (e) => {
+        if (pinned || track.scrollWidth <= track.clientWidth) return;
+        const dy = e.deltaY;
+        if (Math.abs(dy) <= Math.abs(e.deltaX)) return;
+        const atStart = track.scrollLeft <= 0;
+        const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1;
+        if ((dy > 0 && !atEnd) || (dy < 0 && !atStart)) {
+          track.scrollLeft += dy; hideHint(); e.preventDefault();
+        }
+      }, { passive: false });
+    }
+    let down = false, startX = 0, startLeft = 0, moved = false;
+    track.addEventListener('pointerdown', (e) => {
+      if (pinned || e.pointerType === 'touch') return;
+      down = true; moved = false;
+      startX = e.clientX; startLeft = track.scrollLeft;
+      track.classList.add('grabbing');
+      track.setPointerCapture(e.pointerId);
+    });
+    track.addEventListener('pointermove', (e) => {
+      if (!down) return;
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > 3) { moved = true; hideHint(); }
+      track.scrollLeft = startLeft - dx;
+    });
+    const end = (e) => {
+      if (!down) return;
+      down = false;
+      track.classList.remove('grabbing');
+      try { track.releasePointerCapture(e.pointerId); } catch (_) {}
+    };
+    track.addEventListener('pointerup', end);
+    track.addEventListener('pointercancel', end);
+    track.addEventListener('click', (e) => { if (moved) { e.preventDefault(); e.stopPropagation(); } }, true);
+    track.addEventListener('scroll', hideHint, { passive: true });
+
+    // --- Mode épinglé (sans dépendance) : arrivé sur Parcours, scroller vers
+    //     le bas fait défiler la frise horizontalement, sans cliquer dessus.
+    //     La section se "fige" (sticky) le temps de parcourir toutes les étapes. ---
+    const pin = document.getElementById('tlPin');
+    const stage = document.getElementById('tlStage');
+    if (reduced || !pin || !stage) return;
+
+    const enablePin = () => window.innerWidth >= 760 && !window.matchMedia('(hover: none)').matches;
+    let amount = 0, pinTop = 0;
+
+    const layout = () => {
+      if (!enablePin()) { teardown(); return; }
+      // remet à zéro avant mesure pour une largeur de contenu fiable
+      track.style.transform = '';
+      pin.style.height = '';
+      pinned = true;
+      stage.style.position = 'sticky';
+      stage.style.top = '0';
+      stage.style.minHeight = '100vh';
+      stage.style.overflow = 'hidden';
+      // la piste déborde librement ; c'est la scène (fixe) qui découpe
+      track.style.overflow = 'visible';
+      track.scrollLeft = 0;
+      cards.forEach(c => c.classList.add('in'));
+      amount = Math.max(0, track.scrollWidth - track.clientWidth);
+      pinTop = pin.getBoundingClientRect().top + window.scrollY;
+      pin.style.height = (window.innerHeight + amount) + 'px';
+      onScroll();
+    };
+    const teardown = () => {
+      pinned = false;
+      stage.style.position = '';
+      stage.style.top = '';
+      stage.style.minHeight = '';
+      stage.style.overflow = '';
+      track.style.overflow = '';
+      track.style.transform = '';
+      pin.style.height = '';
+    };
+    const onScroll = () => {
+      if (!pinned) return;
+      const p = amount > 0 ? Math.max(0, Math.min(1, (window.scrollY - pinTop) / amount)) : 0;
+      track.style.transform = 'translateX(' + (-p * amount) + 'px)';
+      if (p > 0.02) hideHint();
+    };
+
+    layout();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    let rt;
+    window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layout, 150); });
+    // Recalcule une fois les polices/images chargées (largeur réelle du contenu)
+    window.addEventListener('load', () => setTimeout(layout, 60));
   }
   initContactFluid() {
     const canvas = document.getElementById('contactFluid');
