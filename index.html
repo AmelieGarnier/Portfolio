@@ -1267,6 +1267,24 @@ class Component {
         window.addEventListener('touchmove', e => {
           const t = e.touches[0]; if (t) fwd('mousemove', t.clientX, t.clientY);
         }, { passive: true });
+        // Sur mobile/tactile il n'y a pas de survol : on anime l'effet tout seul
+        // via un « pointeur fantôme » qui dérive dans la zone Contact.
+        const touch = window.matchMedia('(hover: none)').matches || ('ontouchstart' in window);
+        if (touch) {
+          let visible = true, last = 0, t0 = performance.now();
+          new IntersectionObserver(es => es.forEach(e => { visible = e.isIntersecting; }), { threshold: 0.05 }).observe(section);
+          const tick = (ts) => {
+            requestAnimationFrame(tick);
+            if (!visible || ts - last < 60) return;
+            last = ts;
+            const r = canvas.getBoundingClientRect();
+            const t = (ts - t0) / 1000;
+            const x = r.left + r.width * (0.5 + 0.4 * Math.sin(t * 0.9) * Math.cos(t * 0.37));
+            const y = r.top + r.height * (0.5 + 0.4 * Math.sin(t * 0.6 + 1.2));
+            fwd('mousemove', x, y);
+          };
+          requestAnimationFrame(tick);
+        }
       } catch (_) { canvas.remove(); }
     };
     if ('IntersectionObserver' in window) {
@@ -1331,17 +1349,17 @@ class Component {
         const icon = icons[i], win = wins[i];
         const vr = vp.getBoundingClientRect(), ir = icon.getBoundingClientRect();
         const x = ir.left - vr.left + ir.width / 2 + 5, y = ir.top - vr.top + ir.height / 2;
-        moveTo(x, y, 900); await wait(950); if (!running) return;
+        moveTo(x, y, 600); await wait(640); if (!running) return;
         icon.style.background = 'rgba(255,255,255,.10)'; icon.style.borderColor = 'rgba(255,255,255,.22)';
-        clickFx(x, y); await wait(170); if (!running) return;
-        clickFx(x, y); await wait(330); if (!running) return;
+        clickFx(x, y); await wait(120); if (!running) return;
+        clickFx(x, y); await wait(230); if (!running) return;
         win.style.opacity = '1'; win.style.transform = 'translateY(0) scale(1)';
-        await wait(430); if (!running) return;
+        await wait(320); if (!running) return;
         win.querySelectorAll('[data-exp-bar]').forEach(b => { b.style.width = b.getAttribute('data-exp-bar') + '%'; });
-        await wait(3600); if (!running) return;
+        await wait(2200); if (!running) return;
         win.style.opacity = '0'; win.style.transform = 'translateY(14px) scale(.94)';
         icon.style.background = 'transparent'; icon.style.borderColor = 'transparent';
-        await wait(520); if (!running) return;
+        await wait(380); if (!running) return;
         win.querySelectorAll('[data-exp-bar]').forEach(b => { b.style.width = '0'; });
         i = (i + 1) % icons.length;
       }
