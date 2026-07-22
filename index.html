@@ -1227,6 +1227,8 @@ class Component {
     const section = document.getElementById('contact');
     if (!canvas || !section) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { canvas.remove(); return; }
+    // Pas d'effet fluide sur mobile / écran tactile (aucun curseur, et trop lourd)
+    if (window.innerWidth < 760 || window.matchMedia('(hover: none)').matches) { canvas.remove(); return; }
     let started = false;
     const start = async () => {
       if (started) return; started = true;
