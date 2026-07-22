@@ -227,6 +227,16 @@ a:hover{color:#3fc8f0}
   #mainNav.open #navLinks{transform:translateX(0)}
   #navLinks a{font-size:1.05rem!important;letter-spacing:.3em!important}
 }
+/* Corrections de mise en page mobile (grilles 2 colonnes qui débordaient) */
+@media(max-width:760px){
+  /* Icônes décoratives flottantes masquées (chevauchaient titre et texte) */
+  #apropos [data-parallax]{display:none!important}
+  /* Compétences : libellé au-dessus, pastilles en pleine largeur */
+  #apropos [data-reveal]{grid-template-columns:1fr!important;gap:.55rem!important}
+  #apropos [data-reveal] > div:first-child{text-align:left!important}
+  /* Cartes projets : passage en une seule colonne */
+  #projets div[style*="minmax(0,1fr) minmax(0,1.1fr)"]{grid-template-columns:1fr!important;gap:1.4rem!important}
+}
 </style>
 </head>
 <body>
