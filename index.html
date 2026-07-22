@@ -294,7 +294,7 @@ a:hover{color:#3fc8f0}
   <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,8,10,.45) 0%,transparent 25%,transparent 62%,rgba(12,12,12,.92) 100%)"></div>
   <div style="position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 5vw;animation:fadeUp 1.1s cubic-bezier(.16,1,.3,1) .3s both">
     <div style="font-size:.66rem;font-weight:600;letter-spacing:.34em;color:rgba(255,255,255,.85);margin-bottom:1.6rem">PORTFOLIO · 2026</div>
-    <h1 style="margin:0;font-family:'Archivo Black',sans-serif;font-size:clamp(4rem,10.5vw,9.5rem);line-height:.92;letter-spacing:-.015em;color:#fff;text-transform:uppercase;text-shadow:0 6px 60px rgba(0,0,0,.55)"><span style="display:block;overflow:hidden;padding-bottom:.06em;margin-bottom:-.06em"><span data-hero-line="" style="display:inline-block">Amélie</span></span><span style="display:block;overflow:hidden;padding-bottom:.06em;margin-bottom:-.06em"><span data-hero-line="" style="display:inline-block">Garnier</span></span></h1>
+    <h1 style="margin:0;font-family:'Archivo Black',sans-serif;font-size:clamp(2.6rem,7.2vw,6.4rem);line-height:.94;letter-spacing:-.015em;color:#fff;text-transform:uppercase;text-shadow:0 6px 60px rgba(0,0,0,.55)"><span style="display:block;overflow:hidden;padding-bottom:.06em;margin-bottom:-.06em"><span data-hero-line="" style="display:inline-block">Amélie</span></span><span style="display:block;overflow:hidden;padding-bottom:.06em;margin-bottom:-.06em"><span data-hero-line="" style="display:inline-block">Garnier</span></span></h1>
     <div style="margin-top:1.8rem;font-size:.72rem;font-weight:600;letter-spacing:.3em;color:rgba(255,255,255,.92)">CYBERSÉCURITÉ · GRC · <span id="roleWord" style="display:inline-block;color:#3fc8f0">JURISTE EN RECONVERSION</span></div>
     <div style="margin-top:.8rem;font-size:.68rem;font-weight:400;letter-spacing:.14em;color:rgba(255,255,255,.55)">CONTRAT DE PROFESSIONNALISATION — SEPT. 2026</div>
   </div>
@@ -1012,31 +1012,46 @@ class Component {
   }
   initSkillShine() {
     const pills = document.querySelectorAll('#apropos [data-reveal] > div:last-child > span, #projets a[href], #hero button');
+    const shineOn = (p) => {
+      p.style.backgroundImage = 'linear-gradient(115deg, rgba(63,200,240,.30) 0%, rgba(255,255,255,.55) 42%, rgba(139,111,240,.30) 84%)';
+      p.style.borderColor = 'rgba(255,255,255,.55)';
+      p.style.boxShadow = '0 6px 22px rgba(63,200,240,.28), inset 0 1px 0 rgba(255,255,255,.4)';
+      p.style.color = '#0b0b0b';
+      p.style.transform = 'translateY(-3px)';
+      p.animate(
+        [{ backgroundPosition: '120% 50%' }, { backgroundPosition: '-20% 50%' }],
+        { duration: 700, easing: 'cubic-bezier(.2,.7,.3,1)' }
+      );
+      p.style.backgroundPosition = '-20% 50%';
+    };
+    const shineOff = (p) => {
+      p.style.backgroundImage = 'none';
+      p.style.borderColor = 'rgba(255,255,255,.18)';
+      p.style.boxShadow = 'none';
+      p.style.color = '#e2e2e0';
+      p.style.transform = 'translateY(0)';
+    };
     pills.forEach(p => {
       p.style.transition = 'transform .3s cubic-bezier(.2,.85,.3,1), border-color .3s ease, box-shadow .3s ease, color .3s ease';
       p.style.backgroundSize = '250% 100%';
       p.style.backgroundPosition = '0% 50%';
       p.style.willChange = 'transform';
-      p.addEventListener('mouseenter', () => {
-        p.style.backgroundImage = 'linear-gradient(115deg, rgba(63,200,240,.30) 0%, rgba(255,255,255,.55) 42%, rgba(139,111,240,.30) 84%)';
-        p.style.borderColor = 'rgba(255,255,255,.55)';
-        p.style.boxShadow = '0 6px 22px rgba(63,200,240,.28), inset 0 1px 0 rgba(255,255,255,.4)';
-        p.style.color = '#0b0b0b';
-        p.style.transform = 'translateY(-3px)';
-        p.animate(
-          [{ backgroundPosition: '120% 50%' }, { backgroundPosition: '-20% 50%' }],
-          { duration: 700, easing: 'cubic-bezier(.2,.7,.3,1)' }
-        );
-        p.style.backgroundPosition = '-20% 50%';
-      });
-      p.addEventListener('mouseleave', () => {
-        p.style.backgroundImage = 'none';
-        p.style.borderColor = 'rgba(255,255,255,.18)';
-        p.style.boxShadow = 'none';
-        p.style.color = '#e2e2e0';
-        p.style.transform = 'translateY(0)';
-      });
+      p.addEventListener('mouseenter', () => shineOn(p));
+      p.addEventListener('mouseleave', () => shineOff(p));
     });
+    // Tactile : pas de survol, on déclenche le balayage "miroir" quand les
+    // éléments entrent à l'écran (en cascade), puis on repasse à l'état normal.
+    const touch = window.matchMedia('(hover: none)').matches || ('ontouchstart' in window);
+    if (touch) {
+      const io = new IntersectionObserver((entries, obs) => {
+        entries.filter(e => e.isIntersecting).forEach((e, idx) => {
+          const p = e.target;
+          setTimeout(() => { shineOn(p); setTimeout(() => shineOff(p), 760); }, (idx % 6) * 130);
+          obs.unobserve(p);
+        });
+      }, { threshold: 0.6 });
+      pills.forEach(p => io.observe(p));
+    }
   }
   startHero() {
     requestAnimationFrame(() => requestAnimationFrame(() => {
